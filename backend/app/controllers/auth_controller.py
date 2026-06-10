@@ -87,15 +87,16 @@ def login_user():
         # Generar Token JWT
         secret_key = os.getenv("JWT_SECRET_KEY", "tu_jwt_secret_aqui")
         expiration_hours = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 24))
-        
         payload = {
-            "sub": user.id,
+            "sub": str(user.id),
             "role": user.role,
             "iat": datetime.datetime.utcnow(),
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=expiration_hours)
         }
         
         token = jwt.encode(payload, secret_key, algorithm="HS256")
+
+
         
         return jsonify({
             "message": "Inicio de sesión exitoso.",

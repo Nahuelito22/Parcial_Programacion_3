@@ -29,7 +29,9 @@ def token_required(f):
             
             # Decodificar el token
             payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-            user_id = payload.get("sub")
+            user_id = int(payload.get("sub"))
+
+
             
             # Buscar el usuario correspondiente al token
             current_user = User.get_by_id(user_id)
