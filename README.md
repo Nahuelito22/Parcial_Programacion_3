@@ -41,37 +41,32 @@ Para mantener el orden, evitar conflictos y cumplir con las buenas prácticas de
 
 ## Flujo de Trabajo (Diagrama)
 
-```mermaid
-graph TD
-    A[main] -->|Protegida| B(dev)
-    B -->|Entorno de| C(Nahuel_Develop)
-    B -->|Entorno de| D(Gustavo_Develop)
-    
-    C -->|Creación| E(feature/login)
-    C -->|Creación| F(feature/api-estadisticas)
-    
-    D -->|Creación| G(feature/crud-jugadores)
-    
-    E -.->|Pull Request| C
-    F -.->|Pull Request| C
-    G -.->|Pull Request| D
-    
-    C -.->|Pull Request| B
-    D -.->|Pull Request| B
-    
-    B -.->|Merge final| A
-    
-    classDef mainBranch fill:#f96,stroke:#333,stroke-width:2px;
-    classDef devBranch fill:#69b3a2,stroke:#333,stroke-width:2px;
-    classDef userBranch fill:#6baed6,stroke:#333,stroke-width:2px;
-    classDef featureBranch fill:#cccccc,stroke:#333,stroke-width:2px;
-    
-    class A mainBranch;
-    class B devBranch;
-    class C,D userBranch;
-    class E,F,G featureBranch;
+gitGraph
+    commit id: "main"
 
-## 📅 Roadmap del Proyecto (Deadline: 23/06/2026)
+    branch dev
+    checkout dev
+    commit id: "Base"
+
+    branch nahuel_develop
+    checkout nahuel_develop
+    commit id: "feature/login"
+    commit id: "feature/api-estadisticas"
+
+    checkout dev
+    merge nahuel_develop
+
+    branch gustavo_develop
+    checkout gustavo_develop
+    commit id: "feature/crud-jugadores"
+
+    checkout dev
+    merge gustavo_develop
+
+    checkout main
+    merge dev
+
+## Roadmap del Proyecto (Deadline: 23/06/2026)
 - [ ] **Fase 1:** Diseño de BD y Diagrama UML de Clases.
 - [ ] **Fase 2:** Configuración de repositorios y entornos (Flask + React).
 - [ ] **Fase 3:** Backend Core (Autenticación JWT y CRUD de Estadísticas).
