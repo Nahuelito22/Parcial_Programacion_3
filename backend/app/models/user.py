@@ -38,3 +38,74 @@ class User:
             "contrasenia_hash": self.password_hash,
             "rol": self.role
         }
+
+    @staticmethod
+    def get_by_id(user_id: int):
+        """
+        Obtiene un usuario de la base de datos por su ID.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM usuarios WHERE id = %s", (user_id,))
+                row = cursor.fetchone()
+                return User.from_db_row(row)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_email(email: str):
+        """
+        Obtiene un usuario de la base de datos por su email.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+                row = cursor.fetchone()
+                return User.from_db_row(row)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_username(username: str):
+        """
+        Obtiene un usuario de la base de datos por su nombre de usuario.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM usuarios WHERE nombre_usuario = %s", (username,))
+                row = cursor.fetchone()
+                return User.from_db_row(row)
+        finally:
+            conn.close()
+
+    def save(self) -> int:
+        """
+        Inserta o actualiza el registro del usuario en la base de datos.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                if self.id is None:
+                    # Inserción
+                    cursor.execute(
+                        "INSERT INTO usuarios (nombre_usuario, email, contrasenia_hash, rol) VALUES (%s, %s, %s, %s)",
+                        (self.username, self.email, self.password_hash, self.role)
+                    )
+                    self.id = cursor.lastrowid
+                else:
+                    # Actualización
+                    cursor.execute(
+                        "UPDATE usuarios SET nombre_usuario = %s, email = %s, contrasenia_hash = %s, rol = %s WHERE id = %s",
+                        (self.username, self.email, self.password_hash, self.role, self.id)
+                    )
+            return self.id
+        finally:
+            conn.close()
+
