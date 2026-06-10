@@ -41,30 +41,7 @@ Para mantener el orden, evitar conflictos y cumplir con las buenas prácticas de
 
 ## Flujo de Trabajo (Diagrama)
 
-gitGraph
-    commit id: "main"
-
-    branch dev
-    checkout dev
-    commit id: "Base"
-
-    branch nahuel_develop
-    checkout nahuel_develop
-    commit id: "feature/login"
-    commit id: "feature/api-estadisticas"
-
-    checkout dev
-    merge nahuel_develop
-
-    branch gustavo_develop
-    checkout gustavo_develop
-    commit id: "feature/crud-jugadores"
-
-    checkout dev
-    merge gustavo_develop
-
-    checkout main
-    merge dev
+![Git Flow Diagram](Imagenes_Readme\Flujo_de_Trabajo.png)
 
 ## Roadmap del Proyecto (Deadline: 23/06/2026)
 - [ ] **Fase 1:** Diseño de BD y Diagrama UML de Clases.
