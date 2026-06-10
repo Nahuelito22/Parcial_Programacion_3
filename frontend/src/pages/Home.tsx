@@ -38,7 +38,7 @@ export default function Home() {
       //      MUCHO más lenta, suave e integrada, ideal si el video va en pequeños saltos.
       //    - Si lo aumentas (ej: 0.15, 0.20), el video responderá de forma más instantánea
       //      y rápida a tus dedos/rueda de mouse, pero amortiguará menos los tirones.
-      const LERP_FACTOR = 0.08; 
+      const LERP_FACTOR = 0.10; 
 
       // 2. UMBRAL DE ESTABILIZACIÓN: Actualmente 0.0002.
       //    - Define qué tan cerca de su destino real se considera que la animación
@@ -64,12 +64,26 @@ export default function Home() {
       // 1. Scrubbing del Video (Fase de 0.0 a 0.40)
       if (fraction <= 0.40) {
         const videoProgress = fraction / 0.40;
-        const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-        video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
+        
+        // Evitamos errores de reproducción si la metadata del video aún no se ha cargado en el navegador
+        if (video.readyState > 0) {
+          try {
+            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+            video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
+          } catch (error) {
+            // Falla silenciosa si el navegador bloquea la manipulación temporal temporalmente
+          }
+        }
         video.style.opacity = "1";
       } else {
-        const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-        video.currentTime = duration - 0.05;
+        if (video.readyState > 0) {
+          try {
+            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+            video.currentTime = duration - 0.05;
+          } catch (error) {
+            // Falla silenciosa
+          }
+        }
         
         // Transición suave de desvanecimiento del video de 0.40 a 0.45
         if (fraction <= 0.45) {
