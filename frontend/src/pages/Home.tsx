@@ -17,6 +17,14 @@ export default function Home() {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
+      // Forzar al navegador a despertar el decodificador de video por hardware e inicializar la metadata de inmediato
+      videoRef.current.play()
+        .then(() => {
+          videoRef.current?.pause();
+        })
+        .catch(() => {
+          // El autoplay sin interacción está bloqueado por el navegador, lo cual es normal
+        });
     }
 
     // Función que corre en el requestAnimationFrame para suavizar todo el flujo
@@ -65,24 +73,22 @@ export default function Home() {
       if (fraction <= 0.40) {
         const videoProgress = fraction / 0.40;
         
-        // Evitamos errores de reproducción si la metadata del video aún no se ha cargado en el navegador
-        if (video.readyState > 0) {
-          try {
-            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-            video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
-          } catch (error) {
-            // Falla silenciosa si el navegador bloquea la manipulación temporal temporalmente
-          }
+        // Asignamos directamente la posición dentro del bloque try/catch.
+        // Si la metadata aún no se ha inicializado o el codec es incompatible, el catch lo capturará 
+        // de forma silenciosa evitando bloquear el hilo de ejecución de la página.
+        try {
+          const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+          video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
+        } catch (error) {
+          // Captura silenciosa hasta que el video esté listo
         }
         video.style.opacity = "1";
       } else {
-        if (video.readyState > 0) {
-          try {
-            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-            video.currentTime = duration - 0.05;
-          } catch (error) {
-            // Falla silenciosa
-          }
+        try {
+          const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+          video.currentTime = duration - 0.05;
+        } catch (error) {
+          // Captura silenciosa
         }
         
         // Transición suave de desvanecimiento del video de 0.40 a 0.45
