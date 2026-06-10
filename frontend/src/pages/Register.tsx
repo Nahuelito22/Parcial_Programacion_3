@@ -1,10 +1,50 @@
-import { Link } from "react-router-dom";
-import { Trophy, Mail, Lock, User, UserPlus, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Trophy, Mail, Lock, User, UserPlus, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Register() {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Registro mock exitoso. Redirigiendo a Login...");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    // Validación en cliente
+    if (password !== confirmPassword) {
+      setErrorMsg("Las contraseñas no coinciden.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMsg("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await register(username, email, password);
+      setSuccessMsg("¡Registro exitoso! Redirigiendo al inicio de sesión...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Error al crear la cuenta");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -38,6 +78,22 @@ export default function Register() {
           <p className="text-sm text-gray-400 mt-1">Únete para explorar estadísticas y acceder a predicciones IA</p>
         </div>
 
+        {/* Alerta de Error */}
+        {errorMsg && (
+          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm mb-5 animate-fade-in">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Alerta de Éxito */}
+        {successMsg && (
+          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl text-sm mb-5 animate-fade-in">
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nombre de usuario */}
@@ -52,8 +108,11 @@ export default function Register() {
               <input
                 type="text"
                 required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="juan_perez"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting || !!successMsg}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -70,8 +129,11 @@ export default function Register() {
               <input
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="ejemplo@correo.com"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting || !!successMsg}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -88,8 +150,11 @@ export default function Register() {
               <input
                 type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting || !!successMsg}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -106,8 +171,11 @@ export default function Register() {
               <input
                 type="password"
                 required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repite tu contraseña"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting || !!successMsg}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -115,10 +183,11 @@ export default function Register() {
           {/* Botón Registrarse */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-6 cursor-pointer"
+            disabled={submitting || !!successMsg}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-6 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <UserPlus className="h-4 w-4" />
-            Crear Cuenta
+            {submitting ? "Creando cuenta..." : "Crear Cuenta"}
           </button>
         </form>
 

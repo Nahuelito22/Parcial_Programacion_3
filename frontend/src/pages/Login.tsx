@@ -1,10 +1,30 @@
-import { Link } from "react-router-dom";
-import { Trophy, Mail, Lock, LogIn, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Trophy, Mail, Lock, LogIn, ArrowRight, AlertCircle } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Login mock exitoso. Redirigiendo...");
+    setErrorMsg(null);
+    setSubmitting(true);
+
+    try {
+      await login(email, password);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Error al iniciar sesión");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -38,6 +58,14 @@ export default function Login() {
           <p className="text-sm text-gray-400 mt-1">Ingresa tus credenciales para acceder a las estadísticas</p>
         </div>
 
+        {/* Alerta de Error */}
+        {errorMsg && (
+          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm mb-6 animate-fade-in">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
@@ -52,8 +80,11 @@ export default function Login() {
               <input
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="ejemplo@correo.com"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -75,8 +106,11 @@ export default function Login() {
               <input
                 type="password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200"
+                disabled={submitting}
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all duration-200 disabled:opacity-50"
               />
             </div>
           </div>
@@ -84,10 +118,11 @@ export default function Login() {
           {/* Botón Ingresar */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-6 cursor-pointer"
+            disabled={submitting}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-6 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <LogIn className="h-4 w-4" />
-            Ingresar
+            {submitting ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
 
