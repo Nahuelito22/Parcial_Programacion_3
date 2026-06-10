@@ -327,7 +327,7 @@ export default function Home() {
       <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
         <canvas
           ref={canvasRef}
-          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05] transition-opacity duration-75"
+          className="w-full h-full object-cover filter brightness-[0.5] contrast-[1.05] transition-opacity duration-75"
         />
         {/* Degradado y overlay oscuro */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80 z-[1]" />
