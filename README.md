@@ -41,7 +41,7 @@ Para mantener el orden, evitar conflictos y cumplir con las buenas prácticas de
 
 ## Flujo de Trabajo (Diagrama)
 
-![Git Flow Diagram](Imagenes_Readme\Flujo_de_Trabajo.png)
+![Git Flow Diagram](Imagenes_Readme/Flujo_de_Trabajo.png)
 
 ## Roadmap del Proyecto (Deadline: 23/06/2026)
 - [ ] **Fase 1:** Diseño de BD y Diagrama UML de Clases.
