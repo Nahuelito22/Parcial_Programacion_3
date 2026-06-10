@@ -24,7 +24,13 @@ Plataforma web orientada a la gestión y visualización de datos históricos y e
 *(Aquí agregaremos los comandos `npm install`, `pip install -r requirements.txt` y configuración del archivo `.env` más adelante)*
 
 ## Diagrama UML
-*(Insertar imagen del diagrama UML de clases aquí)*
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Imagenes_Readme/Diagrama_UML_Fondo_Blanco.png">
+  <source media="(prefers-color-scheme: light)" srcset="Imagenes_Readme/Diagrama_UML.png">
+  <img alt="Diagrama UML de Clases" src="Imagenes_Readme/Diagrama_UML_Fondo_Blanco.png">
+</picture>
+
 *El diagrama refleja la aplicación de conceptos de Encapsulamiento, Herencia y Polimorfismo en el Backend.*
 
 ## Integrantes
