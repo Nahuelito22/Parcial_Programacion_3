@@ -52,7 +52,7 @@ export default function Login() {
           <Link to="/" className="inline-flex items-center gap-2 mb-4 group">
             <Trophy className="h-7 w-7 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
             <span className="font-extrabold text-xl tracking-wider bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-              MUNDIAL<span className="text-white font-medium text-sm ml-1 tracking-normal">Stats</span>
+              MUNDIAL<span className="text-white font-medium text-sm ml-1 tracking-normal">Data</span>
             </span>
           </Link>
           <h2 className="text-2xl font-bold tracking-tight">Bienvenido de nuevo</h2>

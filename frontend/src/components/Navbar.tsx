@@ -42,7 +42,7 @@ export default function Navbar() {
             <Link to="/" className="flex items-center gap-2 group">
               <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
               <span className="font-extrabold text-lg sm:text-xl tracking-wider bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-                MUNDIAL<span className="text-white font-medium text-xs sm:text-sm ml-1 tracking-normal">Stats</span>
+                MUNDIAL<span className="text-white font-medium text-xs sm:text-sm ml-1 tracking-normal">Data</span>
               </span>
             </Link>
           </div>
