@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, BarChart3, Cpu, ChevronDown, Sparkles, TrendingUp } from "lucide-react";
+import { Trophy, BarChart3, Cpu, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
-  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
   // Referencias para la interpolación lineal (Lerp) / Scroll con inercia
   const targetFractionRef = useRef(0);
@@ -175,7 +174,6 @@ export default function Home() {
       const s1 = section1Ref.current;
       const s2 = section2Ref.current;
       const s3 = section3Ref.current;
-      const indicator = scrollIndicatorRef.current;
 
       const diff = targetFractionRef.current - currentFractionRef.current;
       
@@ -191,13 +189,6 @@ export default function Home() {
 
       // Dibujar fotograma
       drawFrame(fraction);
-
-      // Desvanecer indicador inicial
-      if (indicator) {
-        const indOpacity = Math.max(0, 1 - fraction * 8);
-        indicator.style.opacity = indOpacity.toString();
-        indicator.style.transform = `translate(-50%, ${fraction * -35}px)`;
-      }
 
       // Animaciones de secciones
       if (s1) {
@@ -336,7 +327,7 @@ export default function Home() {
       <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
         <canvas
           ref={canvasRef}
-          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05] transition-opacity duration-75"
+          className="w-full h-full object-cover filter brightness-[0.5] contrast-[1.05] transition-opacity duration-75"
         />
         {/* Degradado y overlay oscuro */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80 z-[1]" />
@@ -349,14 +340,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Indicador de scroll inicial */}
-      <div
-        ref={scrollIndicatorRef}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 opacity-100 transition-all pointer-events-none"
-      >
-        <span className="text-xs font-semibold tracking-widest text-yellow-500/80 uppercase">Desliza para explorar</span>
-        <ChevronDown className="h-5 w-5 text-yellow-500 animate-bounce" />
-      </div>
+
 
       {/* Secciones fijas superpuestas que se animan con el scroll */}
       <div className="fixed inset-0 w-full h-full flex items-center justify-center z-10 px-4 sm:px-6 pointer-events-none">
