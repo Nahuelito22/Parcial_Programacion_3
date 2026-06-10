@@ -350,33 +350,33 @@ export default function Home() {
           ref={section1Ref}
           className="absolute max-w-4xl w-full text-center transition-all duration-75 ease-out opacity-0"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-yellow-500 text-xs font-semibold uppercase tracking-wider mb-6 border border-yellow-500/10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-yellow-500 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 border border-yellow-500/10">
             <Trophy className="h-4 w-4" />
             La Gloria del Fútbol Mundial
           </div>
-          <h2 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-none">
-            LA HISTORIA SE ESCRIBE EN <br />
+          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 leading-none px-4 sm:px-0">
+            LA HISTORIA SE ESCRIBE EN <br className="hidden sm:block" />
             <span className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
               CADA SEGUNDO DE JUEGO
             </span>
           </h2>
-          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+          <p className="text-xs sm:text-sm md:text-xl text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed font-light px-4 sm:px-0">
             Explora las estadísticas de todas las ediciones de la Copa del Mundo. El legado de los campeones mundiales, revivido a través de un análisis de datos moderno.
           </p>
           
           {/* Tarjetas de KPIs */}
-          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-            <div className="glassmorphism p-5 rounded-xl text-center border border-white/5">
-              <span className="block text-2xl sm:text-4xl font-extrabold text-yellow-500 mb-1">22</span>
-              <span className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wide">Ediciones</span>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto px-4 sm:px-0">
+            <div className="glassmorphism p-3 sm:p-5 rounded-xl text-center border border-white/5">
+              <span className="block text-xl sm:text-4xl font-extrabold text-yellow-500 mb-0.5 sm:mb-1">22</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 uppercase font-medium tracking-wide">Ediciones</span>
             </div>
-            <div className="glassmorphism p-5 rounded-xl text-center border border-white/5">
-              <span className="block text-2xl sm:text-4xl font-extrabold text-yellow-500 mb-1">80+</span>
-              <span className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wide">Selecciones</span>
+            <div className="glassmorphism p-3 sm:p-5 rounded-xl text-center border border-white/5">
+              <span className="block text-xl sm:text-4xl font-extrabold text-yellow-500 mb-0.5 sm:mb-1">80+</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 uppercase font-medium tracking-wide">Selecciones</span>
             </div>
-            <div className="glassmorphism p-5 rounded-xl text-center border border-white/5">
-              <span className="block text-2xl sm:text-4xl font-extrabold text-yellow-500 mb-1">2.5k+</span>
-              <span className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wide">Goles</span>
+            <div className="glassmorphism p-3 sm:p-5 rounded-xl text-center border border-white/5">
+              <span className="block text-xl sm:text-4xl font-extrabold text-yellow-500 mb-0.5 sm:mb-1">2.5k+</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 uppercase font-medium tracking-wide">Goles</span>
             </div>
           </div>
         </div>
@@ -386,67 +386,67 @@ export default function Home() {
           ref={section2Ref}
           className="absolute max-w-4xl w-full text-center transition-all duration-75 ease-out opacity-0"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-6 border border-cyan-500/10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 border border-cyan-500/10">
             <BarChart3 className="h-4 w-4" />
             Análisis Estadístico
           </div>
-          <h3 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
+          <h3 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight mb-3 sm:mb-4 px-4 sm:px-0">
             COMPARATIVAS <span className="text-cyan-400 font-black">HEAD-TO-HEAD</span>
           </h3>
-          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto mb-8 leading-relaxed font-light">
+          <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed font-light px-4 sm:px-0">
             Enfréntate a la historia. Compara el rendimiento histórico de las mejores selecciones cara a cara, analizando la posesión, goles y efectividad.
           </p>
 
           {/* Tarjeta Comparador Premium */}
-          <div className="glassmorphism max-w-2xl mx-auto rounded-2xl p-6 border border-white/5 relative overflow-hidden">
+          <div className="glassmorphism max-w-2xl mx-auto rounded-2xl p-4 sm:p-6 md:p-8 border border-white/5 relative overflow-hidden mx-4 sm:mx-auto">
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-500 via-yellow-500 to-amber-500" />
             
-            <div className="grid grid-cols-7 items-center justify-center mb-6">
+            <div className="grid grid-cols-7 items-center justify-center mb-4 sm:mb-6">
               <div className="col-span-3 text-center sm:text-right">
-                <span className="block font-black text-lg sm:text-xl tracking-wider text-white">ARGENTINA</span>
-                <span className="text-xs text-cyan-400 font-bold uppercase tracking-widest">3 Títulos</span>
+                <span className="block font-black text-sm sm:text-lg md:text-xl tracking-wider text-white">ARGENTINA</span>
+                <span className="text-[10px] sm:text-xs text-cyan-400 font-bold uppercase tracking-widest">3 Títulos</span>
               </div>
               <div className="col-span-1 flex items-center justify-center">
-                <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-gray-400">VS</span>
+                <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-white/5 border border-white/10 text-[10px] sm:text-xs font-bold text-gray-400">VS</span>
               </div>
               <div className="col-span-3 text-center sm:text-left">
-                <span className="block font-black text-lg sm:text-xl tracking-wider text-white">FRANCIA</span>
-                <span className="text-xs text-amber-500 font-bold uppercase tracking-widest">2 Títulos</span>
+                <span className="block font-black text-sm sm:text-lg md:text-xl tracking-wider text-white">FRANCIA</span>
+                <span className="text-[10px] sm:text-xs text-amber-500 font-bold uppercase tracking-widest">2 Títulos</span>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <div className="flex justify-between text-xs font-semibold text-gray-400 mb-1.5 px-1">
+                <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 px-1">
                   <span>152 Goles</span>
-                  <span className="uppercase tracking-widest text-[9px] text-gray-500 font-bold">Goles Totales</span>
+                  <span className="uppercase tracking-widest text-[8px] sm:text-[9px] text-gray-500 font-bold">Goles Totales</span>
                   <span>138 Goles</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                <div className="h-1.5 sm:h-2 rounded-full bg-white/5 overflow-hidden flex">
                   <div className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400" style={{ width: "52%" }}></div>
                   <div className="h-full bg-gradient-to-r from-amber-500 to-amber-600 ml-auto" style={{ width: "48%" }}></div>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-gray-400 mb-1.5 px-1">
+                <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 px-1">
                   <span>56.8%</span>
-                  <span className="uppercase tracking-widest text-[9px] text-gray-500 font-bold">Posesión Promedio</span>
+                  <span className="uppercase tracking-widest text-[8px] sm:text-[9px] text-gray-500 font-bold">Posesión Promedio</span>
                   <span>52.4%</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                <div className="h-1.5 sm:h-2 rounded-full bg-white/5 overflow-hidden flex">
                   <div className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400" style={{ width: "58%" }}></div>
                   <div className="h-full bg-gradient-to-r from-amber-500 to-amber-600 ml-auto" style={{ width: "42%" }}></div>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-gray-400 mb-1.5 px-1">
+                <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 mb-1 px-1">
                   <span>6 Victorias</span>
-                  <span className="uppercase tracking-widest text-[9px] text-gray-500 font-bold">Victorias Directas</span>
+                  <span className="uppercase tracking-widest text-[8px] sm:text-[9px] text-gray-500 font-bold">Victorias Directas</span>
                   <span>3 Victorias</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                <div className="h-1.5 sm:h-2 rounded-full bg-white/5 overflow-hidden flex">
                   <div className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400" style={{ width: "67%" }}></div>
                   <div className="h-full bg-gradient-to-r from-amber-500 to-amber-600 ml-auto" style={{ width: "33%" }}></div>
                 </div>
@@ -460,63 +460,63 @@ export default function Home() {
           ref={section3Ref}
           className="absolute max-w-4xl w-full text-center transition-all duration-75 ease-out opacity-0"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-yellow-500 text-xs font-semibold uppercase tracking-wider mb-6 border border-yellow-500/10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-yellow-500 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 border border-yellow-500/10">
             <Cpu className="h-4 w-4 text-yellow-500" />
             Recomendador Inteligente
           </div>
-          <h3 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
+          <h3 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight mb-3 sm:mb-4 px-4 sm:px-0">
             PREDICCIONES DEL <span className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">ORÁCULO IA</span>
           </h3>
-          <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto mb-8 leading-relaxed font-light">
+          <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed font-light px-4 sm:px-0">
             Nuestro motor de IA procesa millones de datos históricos para generar predicciones detalladas sobre los ganadores y estadísticas clave de los próximos partidos.
           </p>
 
           {/* Tarjeta Oráculo IA */}
-          <div className="glassmorphism max-w-md mx-auto rounded-2xl p-6 border border-white/5 mb-8 text-left relative overflow-hidden">
+          <div className="glassmorphism max-w-md mx-auto rounded-2xl p-4 sm:p-6 border border-white/5 mb-6 sm:mb-8 text-left relative overflow-hidden mx-4 sm:mx-auto">
             <div className="absolute -right-8 -top-8 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                <Sparkles className="h-5 w-5 text-yellow-500" />
+              <div className="p-1.5 sm:p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <Sparkles className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-500" />
               </div>
               <div>
-                <span className="block font-bold text-sm text-white">Análisis de Simulación H2H</span>
-                <span className="text-xs text-gray-400">Modelo Predictivo Mundial v2.1</span>
+                <span className="block font-bold text-xs sm:text-sm text-white">Análisis de Simulación H2H</span>
+                <span className="text-[10px] sm:text-xs text-gray-400">Modelo Predictivo Mundial v2.1</span>
               </div>
             </div>
 
-            <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+            <div className="space-y-2.5 sm:space-y-3 bg-black/20 p-3 sm:p-4 rounded-xl border border-white/5">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Probabilidad de Victoria:</span>
                 <span className="font-bold text-yellow-500">Argentina (54.2%)</span>
               </div>
-              <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-white/5 h-1 sm:h-1.5 rounded-full overflow-hidden">
                 <div className="bg-yellow-500 h-full" style={{ width: "54.2%" }}></div>
               </div>
-              <div className="flex justify-between items-center text-[11px] text-gray-400 mt-1">
+              <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-gray-400 mt-1">
                 <span>Empate: 21.3%</span>
                 <span>Francia: 24.5%</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mt-4 text-[11px] text-green-400">
+            <div className="flex items-center gap-2 mt-4 text-[10px] sm:text-[11px] text-green-400">
               <TrendingUp className="h-3.5 w-3.5" />
               <span>Alta probabilidad de goles en el segundo tiempo (&gt;1.5 goles)</span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-        <Link
-          to="/register"
-          className="pointer-events-auto w-full px-8 py-3.5 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/35 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-        >
-          Registrarse Gratis
-        </Link>
-        <Link
-          to="/login"
-          className="pointer-events-auto w-full px-8 py-3.5 rounded-xl font-bold bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-center cursor-pointer"
-        >
-          Iniciar Sesión
-        </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto px-4 sm:px-0">
+            <Link
+              to="/register"
+              className="pointer-events-auto w-full px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/35 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
+            >
+              Registrarse Gratis
+            </Link>
+            <Link
+              to="/login"
+              className="pointer-events-auto w-full px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-xl font-bold bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-center cursor-pointer text-sm sm:text-base"
+            >
+              Iniciar Sesión
+            </Link>
           </div>
         </div>
 
