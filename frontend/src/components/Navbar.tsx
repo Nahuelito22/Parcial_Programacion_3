@@ -1,13 +1,38 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Trophy, LogIn, UserPlus, Home as HomeIcon, BarChart2 } from "lucide-react";
 
 export default function Navbar() {
   const location = useLocation();
+  const isHomePage = location.pathname === "/";
+  const [showNavbar, setShowNavbar] = useState(!isHomePage);
 
   const isActive = (path: string) => location.pathname === path;
 
+  useEffect(() => {
+    if (!isHomePage) {
+      setShowNavbar(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      if (window.scrollY > window.innerHeight * 1.2) {
+        setShowNavbar(true);
+      } else {
+        setShowNavbar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
+
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 glassmorphism transition-all duration-300">
+    <nav className={`fixed top-0 left-0 w-full z-50 glassmorphism transition-all duration-700 ease-in-out ${
+      showNavbar ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
