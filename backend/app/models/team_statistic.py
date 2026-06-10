@@ -58,3 +58,94 @@ class TeamStatistic(Statistic):
             "goles_en_contra": self.goals_against,
             "posesion_promedio": self.average_possession
         }
+
+    @staticmethod
+    def get_all():
+        """
+        Retorna todas las estadísticas de equipos.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_equipos")
+                rows = cursor.fetchall()
+                return [TeamStatistic.from_db_row(row) for row in rows]
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_id(stat_id: int):
+        """
+        Retorna una estadística de equipo por su ID.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_equipos WHERE id = %s", (stat_id,))
+                row = cursor.fetchone()
+                return TeamStatistic.from_db_row(row)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_edition(edition_id: int):
+        """
+        Retorna todas las estadísticas de equipos para una edición específica.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_equipos WHERE edicion_id = %s", (edition_id,))
+                rows = cursor.fetchall()
+                return [TeamStatistic.from_db_row(row) for row in rows]
+        finally:
+            conn.close()
+
+    def save(self) -> int:
+        """
+        Inserta o actualiza la estadística del equipo en la base de datos.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                if self.id is None:
+                    cursor.execute(
+                        """
+                        INSERT INTO estadisticas_equipos 
+                        (edicion_id, partidos_jugados, pais_id, nombre_pais, goles_a_favor, goles_en_contra, posesion_promedio) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (self.edition_id, self.matches_played, self.team_id, self.team_name, self.goals_for, self.goals_against, self.average_possession)
+                    )
+                    self.id = cursor.lastrowid
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE estadisticas_equipos 
+                        SET edicion_id = %s, partidos_jugados = %s, pais_id = %s, nombre_pais = %s, goles_a_favor = %s, goles_en_contra = %s, posesion_promedio = %s 
+                        WHERE id = %s
+                        """,
+                        (self.edition_id, self.matches_played, self.team_id, self.team_name, self.goals_for, self.goals_against, self.average_possession, self.id)
+                    )
+            return self.id
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_by_id(stat_id: int) -> bool:
+        """
+        Elimina una estadística de equipo específica.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM estadisticas_equipos WHERE id = %s", (stat_id,))
+                return cursor.rowcount > 0
+        finally:
+            conn.close()
+
