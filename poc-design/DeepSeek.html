@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup Stats - Premium Dashboard</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'pitch': {
+                            950: '#060b14',
+                            900: '#0a1224',
+                            800: '#0f1a33',
+                            700: '#152342',
+                        },
+                        'gold': {
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        },
+                        'turf': {
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                    },
+                    boxShadow: {
+                        'card': '0 4px 24px -2px rgba(0, 0, 0, 0.3), 0 2px 8px -1px rgba(0, 0, 0, 0.2)',
+                        'card-hover': '0 12px 32px -4px rgba(234, 179, 8, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.3)',
+                        'glow': '0 0 30px -5px rgba(234, 179, 8, 0.25)',
+                        'sidebar': '4px 0 24px -2px rgba(0, 0, 0, 0.4)',
+                    },
+                    backgroundImage: {
+                        'hero-pattern': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        :root {
+            --color-gold: #eab308;
+            --color-turf: #10b981;
+        }
+
+        * {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #060b14;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Animación sutil para el gradiente del login */
+        @keyframes shimmer {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .animate-shimmer {
+            background-size: 200% 200%;
+            animation: shimmer 6s ease-in-out infinite;
+        }
+
+        /* Efecto de pulso para el indicador online */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .pulse-ring::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse-ring 2s ease-out infinite;
+            z-index: -1;
+        }
+
+        /* Transiciones suaves entre vistas */
+        .view-enter {
+            animation: fadeSlideIn 0.35s ease-out forwards;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar estilizado */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Efecto hover en filas de tabla */
+        .table-row-hover {
+            transition: all 0.2s ease;
+        }
+        .table-row-hover:hover {
+            background: rgba(30, 41, 59, 0.5);
+            transform: translateX(2px);
+        }
+
+        /* Glass morphism para el formulario */
+        .glass-card {
+            background: rgba(15, 26, 51, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-pitch-950 text-white antialiased min-h-screen">
+
+    <div id="root"></div>
+
+    <!-- React + ReactDOM + Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js">
+    </script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js">
+    </script>
+
+    <script type="text/babel">
+        // ============================================================
+        // MOCK DATA
+        // ============================================================
+        const mockSummaryCards = [{
+            id: 1,
+            title: 'Goleador Histórico',
+            value: '16',
+            subtitle: 'Miroslav Klose',
+            icon: 'Trophy',
+            trend: '+3 vs 2018',
+            trendUp: true,
+            accent: 'amber',
+        }, {
+            id: 2,
+            title: 'Campeón Actual',
+            value: '🇦🇷',
+            subtitle: 'Argentina',
+            icon: 'Medal',
+            trend: '3ra estrella',
+            trendUp: true,
+            accent: 'gold',
+        }, {
+            id: 3,
+            title: 'Total Partidos',
+            value: '64',
+            subtitle: 'En la fase final',
+            icon: 'Swords',
+            trend: 'Igual que 2018',
+            trendUp: null,
+            accent: 'blue',
+        }, {
+            id: 4,
+            title: 'Goles Totales',
+            value: '172',
+            subtitle: 'Promedio 2.69/partido',
+            icon: 'Target',
+            trend: '+3 récord',
+            trendUp: true,
+            accent: 'emerald',
+        }, ];
+
+        const messiVsMbappeData = {
+            left: {
+                name: 'L. Messi',
+                country: 'Argentina',
+                flag: '🇦🇷',
+                initials: 'LM',
+                colorFrom: '#75b5e6',
+                colorTo: '#ffffff',
+                stats: [
+                    { label: 'Goles', value: 13, max: 16 },
+                    { label: 'Asistencias', value: 8, max: 10 },
+                    { label: 'Partidos', value: 26, max: 30 },
+                    { label: 'Mundiales', value: 5, max: 6 },
+                    { label: 'Promedio', value: 0.62, max: 0.7, suffix: '/partido' },
+                ],
+            },
+            right: {
+                name: 'K. Mbappé',
+                country: 'Francia',
+                flag: '🇫🇷',
+                initials: 'KM',
+                colorFrom: '#1a3a8a',
+                colorTo: '#e5212d',
+                stats: [
+                    { label: 'Goles', value: 12, max: 16 },
+                    { label: 'Asistencias', value: 5, max: 10 },
+                    { label: 'Partidos', value: 19, max: 30 },
+                    { label: 'Mundiales', value: 2, max: 6 },
+                    { label: 'Promedio', value: 0.79, max: 0.7, suffix: '/partido' },
+                ],
+            },
+        };
+
+        const mockPlayers = [
+            { id: 1, name: 'Lionel Messi', country: 'Argentina', flag: '🇦🇷', goals: 13, assists: 8, worldCups: 5,
+                color: '#75b5e6' },
+            { id: 2, name: 'Kylian Mbappé', country: 'Francia', flag: '🇫🇷', goals: 12, assists: 5, worldCups: 2,
+                color: '#1a3a8a' },
+            { id: 3, name: 'Cristiano Ronaldo', country: 'Portugal', flag: '🇵🇹', goals: 8, assists: 2, worldCups: 5,
+                color: '#c41e3a' },
+            { id: 4, name: 'Neymar Jr', country: 'Brasil', flag: '🇧🇷', goals: 8, assists: 4, worldCups: 3, color: '#f7d716' },
+            { id: 5, name: 'Harry Kane', country: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', goals: 8, assists: 3,
+        worldCups: 2, color: '#ffffff' },
+        { id: 6, name: 'Robert Lewandowski', country: 'Polonia', flag: '🇵🇱', goals: 9, assists: 1, worldCups: 2,
+            color: '#dc143c' },
+        { id: 7, name: 'Kevin De Bruyne', country: 'Bélgica', flag: '🇧🇪', goals: 3, assists: 9, worldCups: 3,
+            color: '#e31936' },
+        { id: 8, name: 'Luka Modric', country: 'Croacia', flag: '🇭🇷', goals: 2, assists: 6, worldCups: 4, color: '#ff0000' },
+        { id: 9, name: 'Vinícius Jr', country: 'Brasil', flag: '🇧🇷', goals: 5, assists: 4, worldCups: 1, color: '#009c3b' },
+        { id: 10, name: 'Jude Bellingham', country: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', goals: 4, assists: 3,
+        worldCups: 1, color: '#0a3d91' },
+        ];
+
+        // ============================================================
+        // ICONOS SVG (estilo Lucide simplificado)
+        // ============================================================
+        const Icon = {
+            LayoutDashboard: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="9" rx="1" />
+                <rect x="14" y="3" width="7" height="5" rx="1" />
+                <rect x="14" y="12" width="7" height="9" rx="1" />
+                <rect x="3" y="16" width="7" height="5" rx="1" />
+                </svg> ),
+                Users: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M1 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+                    <circle cx="18" cy="8" r="3" />
+                    <path d="M23 21v-2a3 3 0 0 0-3-3h-2" />
+                    </svg> ),
+                    BarChart3: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 3v18h18" />
+                        <path d="M7 16l4-5 4 3 4-6" />
+                        </svg> ),
+                        Settings: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                            </svg> ),
+                            LogOut: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16,17 21,12 16,7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg> ),
+                                Search: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                    </svg> ),
+                                    Bell: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                        </svg> ),
+                                        ChevronDown: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                            strokeLinejoin="round">
+                                            <polyline points="6,9 12,15 18,9" />
+                                            </svg> ),
+                                            Edit: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                                strokeLinejoin="round">
+                                                <path
+                                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                </svg> ),
+                                                Trash2: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                                    strokeLinejoin="round">
+                                                    <polyline points="3,6 5,6 21,6" />
+                                                    <path
+                                                    d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                    <path d="M10 11v6" />
+                                                    <path d="M14 11v6" />
+                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                    </svg> ),
+                                                    Trophy: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                                        strokeLinejoin="round">
+                                                        <path
+                                                        d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2" />
+                                                        <path
+                                                        d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
+                                                        <path d="M6 3h12v6a6 6 0 0 1-12 0V3z" />
+                                                        <path d="M12 15v6" />
+                                                        <path d="M8 21h8" />
+                                                        </svg> ),
+                                                        Medal: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                                            strokeLinejoin="round">
+                                                            <circle cx="12" cy="8" r="7" />
+                                                            <polyline points="8.21,13.89 7,23 12,20 17,23 15.79,13.88" />
+                                                            </svg> ),
+                                                            Swords: (props) => ( <svg {...props} viewBox="0 0 24 24" fill="none"
+                                                                stroke="currentColor" strokeWidth="2"
+                                                                strokeLinecap="round" strokeLinejoin="round">
+                                                                <polyline points="14.5,17.5 3,6 3,3 6,3 17.5,14.5" />
+                                                                <line x1="13" y1="19" x2="19" y2="13" />
+                                                                <line x1="16" y1="16" x2="20" y2="20" />
+                                                                <line x1="19" y1="21" x2="21" y2="19" />
+                                                                </svg> ),
+                                                                Target: (props) => ( <svg {...props} viewBox="0 0 24 24"
+                                                                    fill="none" stroke="currentColor" strokeWidth="2"
+                                                                    strokeLinecap="round" strokeLinejoin="round">
+                                                                    <circle cx="12" cy="12" r="10" />
+                                                                    <circle cx="12" cy="12" r="6" />
+                                                                    <circle cx="12" cy="12" r="2" />
+                                                                    </svg> ),
+                                                                    Mail: (props) => ( <svg {...props} viewBox="0 0 24 24"
+                                                                        fill="none" stroke="currentColor" strokeWidth="2"
+                                                                        strokeLinecap="round" strokeLinejoin="round">
+                                                                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                                                                        <path d="M22 4L12 14 2 4" />
+                                                                        </svg> ),
+                                                                        Lock: (props) => ( <svg {...props} viewBox="0 0 24 24"
+                                                                            fill="none" stroke="currentColor"
+                                                                            strokeWidth="2" strokeLinecap="round"
+                                                                            strokeLinejoin="round">
+                                                                            <rect x="3" y="11" width="18" height="11"
+                                                                                rx="2" />
+                                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                                            </svg> ),
+                                                                            Eye: (props) => ( <svg {...props} viewBox="0 0 24 24"
+                                                                                fill="none" stroke="currentColor"
+                                                                                strokeWidth="2" strokeLinecap="round"
+                                                                                strokeLinejoin="round">
+                                                                                <path
+                                                                                d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                                                <circle cx="12" cy="12" r="3" />
+                                                                                </svg> ),
+                                                                                ArrowUp: (props) => ( <svg {...props}
+                                                                                    viewBox="0 0 24 24" fill="none"
+                                                                                    stroke="currentColor" strokeWidth="2"
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round">
+                                                                                    <polyline points="18,15 12,9 6,15" />
+                                                                                    </svg> ),
+                                                                                    ArrowDown: (props) => ( <svg {...props}
+                                                                                        viewBox="0 0 24 24" fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth="2"
+                                                                                        strokeLinecap="round"
+                                                                                        strokeLinejoin="round">
+                                                                                        <polyline points="6,9 12,15 18,9" />
+                                                                                        </svg> ),
+                                                                                        X: (props) => ( <svg {...props}
+                                                                                            viewBox="0 0 24 24" fill="none"
+                                                                                            stroke="currentColor"
+                                                                                            strokeWidth="2"
+                                                                                            strokeLinecap="round"
+                                                                                            strokeLinejoin="round">
+                                                                                            <line x1="18" y1="6" x2="6"
+                                                                                                y2="18" />
+                                                                                            <line x1="6" y1="6" x2="18"
+                                                                                                y2="18" />
+                                                                                            </svg> ),
+                                                                                            AlertTriangle: (props) => ( <svg
+                                                                                                {...props} viewBox="0 0 24 24"
+                                                                                                fill="none"
+                                                                                                stroke="currentColor"
+                                                                                                strokeWidth="2"
+                                                                                                strokeLinecap="round"
+                                                                                                strokeLinejoin="round">
+                                                                                                <path
+                                                                                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                                                                                <line x1="12" y1="9" x2="12"
+                                                                                                    y2="13" />
+                                                                                                <line x1="12" y1="17" x2="12.01"
+                                                                                                    y2="17" />
+                                                                                                </svg> ),
+                                                                                            };
+
+        // ============================================================
+        // COMPONENTE: Modal de Confirmación (Eliminar)
+        // ============================================================
+        function ConfirmModal({ isOpen, onClose, onConfirm, playerName }) {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-pitch-900 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md shadow-2xl view-enter">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                                <Icon.AlertTriangle className="w-5 h-5 text-red-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">Confirmar Eliminación</h3>
+                                <p className="text-sm text-gray-400">Esta acción no se puede deshacer.</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-300 mb-6">
+                            ¿Estás seguro de que deseas eliminar a <span className="font-semibold text-white">{playerName}</span> de las estadísticas?
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button onClick={onClose}
+                            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium transition-colors text-sm">
+                            Cancelar
+                        </button>
+                        <button onClick={onConfirm}
+                        className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white font-medium transition-colors text-sm flex items-center gap-2">
+                        <Icon.Trash2 className="w-4 h-4" />
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+        );
+    }
+
+    // ============================================================
+    // COMPONENTE: Toast de Notificación
+    // ============================================================
+    function Toast({ message, type, isVisible }) {
+        if (!isVisible) return null;
+        const bgColor = type === 'success' ? 'bg-emerald-500/90' : type === 'error' ? 'bg-red-500/90' : 'bg-gray-700/90';
+        return (
+            <div className={`fixed top-6 right-6 z-50 ${bgColor} backdrop-blur-md text-white px-5 py-3 rounded-xl shadow-lg view-enter flex items-center gap-3 text-sm font-medium`}>
+                {type === 'success' && <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20,6 9,17 4,12"/></svg>}
+                {type === 'error' && <Icon.AlertTriangle className="w-5 h-5" />}
+                {message}
+            </div>
+        );
+    }
+
+    // ============================================================
+    // PANTALLA DE LOGIN
+    // ============================================================
+    function LoginScreen({ onLogin }) {
+        const [email, setEmail] = React.useState('');
+        const [password, setPassword] = React.useState('');
+        const [showPassword, setShowPassword] = React.useState(false);
+        const [isLoading, setIsLoading] = React.useState(false);
+        const [error, setError] = React.useState('');
+
+        const handleSubmit = (e) => {
+            e.preventDefault();
+            setError('');
+            if (!email || !password) {
+                setError('Por favor, completa todos los campos.');
+                return;
+            }
+            setIsLoading(true);
+            // Simular loading
+            setTimeout(() => {
+                setIsLoading(false);
+                onLogin();
+            }, 1200);
+        };
+
+        return (
+            <div className="min-h-screen flex">
+                {/* Panel Izquierdo - Branding */}
+                <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden bg-pitch-900">
+                    {/* Fondo con patrón de hexágonos */}
+                    <div className="absolute inset-0 bg-hero-pattern opacity-30"></div>
+                    {/* Gradiente overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-pitch-950/80 via-pitch-900/60 to-emerald-900/40"></div>
+                    {/* Círculos decorativos */}
+                    <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-gold-500/10 blur-3xl"></div>
+                    <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-turf-500/8 blur-3xl"></div>
+
+                    {/* Contenido */}
+                    <div className="relative z-10 flex flex-col justify-center px-12 w-full">
+                        <div className="mb-8">
+                            {/* Logo simulado */}
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-glow">
+                                    <svg className="w-7 h-7 text-pitch-950" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2L15 8l6 1-4 4 1 6-5-3-5 3 1-6-4-4 6-1 3-6z"/>
+                                    </svg>
+                                </div>
+                                <span className="text-2xl font-display font-bold text-white tracking-tight">WorldCup<span className="text-gold-400">Stats</span></span>
+                            </div>
+                            <p className="text-gray-300 text-sm mt-2 max-w-md leading-relaxed">
+                                La plataforma definitiva para explorar las estadísticas históricas de la Copa del Mundo de la FIFA.
+                            </p>
+                        </div>
+
+                        {/* Stats preview */}
+                        <div className="grid grid-cols-2 gap-4 mt-8">
+                            <div className="glass-card rounded-xl p-4">
+                                <p className="text-gold-400 text-3xl font-display font-bold">22</p>
+                                <p className="text-gray-300 text-xs mt-1">Ediciones Jugadas</p>
+                            </div>
+                            <div className="glass-card rounded-xl p-4">
+                                <p className="text-gold-400 text-3xl font-display font-bold">8</p>
+                                <p className="text-gray-300 text-xs mt-1">Países Campeones</p>
+                            </div>
+                            <div className="glass-card rounded-xl p-4">
+                                <p className="text-gold-400 text-3xl font-display font-bold">2.7K+</p>
+                                <p className="text-gray-300 text-xs mt-1">Goles Históricos</p>
+                            </div>
+                            <div className="glass-card rounded-xl p-4">
+                                <p className="text-gold-400 text-3xl font-display font-bold">80+</p>
+                                <p className="text-gray-300 text-xs mt-1">Selecciones</p>
+                            </div>
+                        </div>
+
+                        <p className="text-gray-500 text-xs mt-12">© 2026 WorldCupStats. Todos los derechos reservados.</p>
+                    </div>
+                </div>
+
+                {/* Panel Derecho - Formulario */}
+                <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-pitch-950 relative">
+                    <div className="absolute inset-0 bg-hero-pattern opacity-20"></div>
+                    <div className="relative z-10 w-full max-w-md">
+                        <div className="text-center mb-8 lg:hidden">
+                            <div className="flex items-center justify-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-glow">
+                                    <svg className="w-6 h-6 text-pitch-950" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2L15 8l6 1-4 4 1 6-5-3-5 3 1-6-4-4 6-1 3-6z"/>
+                                    </svg>
+                                </div>
+                                <span className="text-xl font-display font-bold text-white tracking-tight">WorldCup<span className="text-gold-400">Stats</span></span>
+                            </div>
+                        </div>
+
+                        <div className="glass-card rounded-2xl p-8 shadow-card">
+                            <h2 className="text-2xl font-display font-bold text-white mb-1">Iniciar Sesión</h2>
+                            <p className="text-gray-400 text-sm mb-6">Accede a tu dashboard de estadísticas</p>
+
+                            {error && (
+                                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+                                    <Icon.AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                    {error}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {/* Email */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1.5">Correo Electrónico</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Icon.Mail className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="admin@worldcup.com"
+                                        className="w-full pl-10 pr-4 py-3 bg-pitch-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/30 transition-all text-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Contraseña */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1.5">Contraseña</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Icon.Lock className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="w-full pl-10 pr-12 py-3 bg-pitch-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/30 transition-all text-sm"
+                                        />
+                                        <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                                        >
+                                        <Icon.Eye className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Recordar + Olvidé contraseña */}
+                            <div className="flex items-center justify-between text-sm">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-pitch-800 text-gold-500 focus:ring-gold-500/30" />
+                                    <span className="text-gray-400">Recordarme</span>
+                                </label>
+                                <a href="#" className="text-gold-400 hover:text-gold-300 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
+                            </div>
+
+                            {/* Botón */}
+                            <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-3 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-pitch-950 font-semibold rounded-xl transition-all shadow-glow disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                            >
+                            {isLoading ? (
+                                <>
+                                <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                </svg>
+                                Iniciando sesión...
+                            </>
+                        ) : (
+                            'Iniciar Sesión'
+                        )}
+                    </button>
+                </form>
+
+                {/* Credenciales demo */}
+                <div className="mt-6 pt-5 border-t border-gray-700/50">
+                    <p className="text-xs text-gray-500 text-center mb-2">Credenciales de demostración</p>
+                    <p className="text-xs text-gray-400 text-center">admin@worldcup.com / password123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+);
+}
+
+// ============================================================
+// SIDEBAR DE NAVEGACIÓN
+// ============================================================
+function Sidebar({ currentView, onNavigate, onLogout }) {
+const navItems = [
+{ id: 'dashboard', label: 'Dashboard', icon: Icon.LayoutDashboard },
+{ id: 'admin', label: 'Jugadores', icon: Icon.Users },
+{ id: 'stats', label: 'Estadísticas', icon: Icon.BarChart3 },
+{ id: 'settings', label: 'Configuración', icon: Icon.Settings },
+];
+
+return (
+<div className="w-64 h-screen bg-pitch-900 border-r border-gray-800/50 flex flex-col flex-shrink-0 shadow-sidebar relative z-20">
+{/* Logo */}
+<div className="p-5 border-b border-gray-800/50">
+<div className="flex items-center gap-3">
+<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-glow flex-shrink-0">
+<svg className="w-6 h-6 text-pitch-950" viewBox="0 0 24 24" fill="currentColor">
+<path d="M12 2L15 8l6 1-4 4 1 6-5-3-5 3 1-6-4-4 6-1 3-6z"/>
+</svg>
+</div>
+<div>
+<span className="text-lg font-display font-bold text-white tracking-tight block leading-tight">WorldCup</span>
+<span className="text-gold-400 font-display font-bold text-lg leading-tight">Stats</span>
+</div>
+</div>
+</div>
+
+{/* Navegación */}
+<nav className="flex-1 p-4 space-y-1.5">
+{navItems.map((item) => {
+const isActive = currentView === item.id;
+return (
+<button
+key={item.id}
+onClick={() => onNavigate(item.id)}
+className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+isActive
+? 'bg-gold-500/10 text-gold-400 border border-gold-500/20 shadow-glow'
+: 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent'
+}`}
+>
+<item.icon className={`w-5 h-5 ${isActive ? 'text-gold-400' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`} />
+{item.label}
+</button>
+);
+})}
+</nav>
+
+{/* Footer del sidebar */}
+<div className="p-4 border-t border-gray-800/50">
+<div className="flex items-center gap-3 mb-3 px-2">
+<div className="relative flex-shrink-0">
+<div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white font-semibold text-sm">
+AD
+</div>
+<div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-turf-500 border-2 border-pitch-900 pulse-ring"></div>
+</div>
+<div className="flex-1 min-w-0">
+<p className="text-sm font-medium text-white truncate">Admin User</p>
+<p className="text-xs text-gray-500 truncate">admin@worldcup.com</p>
+</div>
+</div>
+<button
+onClick={onLogout}
+className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/5 transition-all text-sm font-medium"
+>
+<Icon.LogOut className="w-4 h-4" />
+Cerrar Sesión
+</button>
+</div>
+</div>
+);
+}
+
+// ============================================================
+// HEADER DEL DASHBOARD
+// ============================================================
+function DashboardHeader({ title, subtitle }) {
+return (
+<div className="flex items-center justify-between mb-8">
+<div>
+<h1 className="text-2xl font-display font-bold text-white">{title}</h1>
+<p className="text-gray-400 text-sm mt-1">{subtitle}</p>
+</div>
+<div className="flex items-center gap-3">
+{/* Buscador */}
+<div className="relative hidden md:block">
+<Icon.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+<input
+type="text"
+placeholder="Buscar..."
+className="pl-10 pr-4 py-2.5 bg-pitch-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-gold-500/30 focus:ring-1 focus:ring-gold-500/20 w-56 transition-all"
+/>
+</div>
+{/* Notificaciones */}
+<button className="relative p-2.5 rounded-xl bg-pitch-800/50 border border-gray-700/50 text-gray-400 hover:text-gray-200 hover:border-gray-600 transition-all">
+<Icon.Bell className="w-5 h-5" />
+<span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-pitch-950">3</span>
+</button>
+{/* Avatar */}
+<div className="flex items-center gap-2 pl-2 border-l border-gray-700/50">
+<div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+AD
+</div>
+<Icon.ChevronDown className="w-4 h-4 text-gray-500" />
+</div>
+</div>
+</div>
+);
+}
+
+// ============================================================
+// VISTA: DASHBOARD PRINCIPAL
+// ============================================================
+function DashboardView() {
+const accentColors = {
+amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', iconBg: 'bg-amber-500/15' },
+gold: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20', iconBg: 'bg-yellow-500/15' },
+blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', iconBg: 'bg-blue-500/15' },
+emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20',
+iconBg: 'bg-emerald-500/15' },
+};
+
+const iconMap = {
+Trophy: Icon.Trophy,
+Medal: Icon.Medal,
+Swords: Icon.Swords,
+Target: Icon.Target,
+};
+
+return (
+<div className="view-enter">
+<DashboardHeader title="Dashboard" subtitle="Resumen general de estadísticas del Mundial" />
+
+{/* Grid de tarjetas */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+{mockSummaryCards.map((card) => {
+const colors = accentColors[card.accent];
+const IconComp = iconMap[card.icon];
+return (
+<div
+key={card.id}
+className={`relative bg-pitch-900 border border-gray-800/60 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer group overflow-hidden`}
+>
+{/* Línea de acento superior */}
+<div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${card.accent === 'amber' ? 'from-amber-400 to-amber-600' : card.accent === 'gold' ? 'from-yellow-400 to-yellow-600' : card.accent === 'blue' ? 'from-blue-400 to-blue-600' : 'from-emerald-400 to-emerald-600'} opacity-80`}></div>
+
+<div className="flex items-start justify-between mb-3">
+<div className={`w-10 h-10 rounded-xl ${colors.iconBg} flex items-center justify-center`}>
+<IconComp className={`w-5 h-5 ${colors.text}`} />
+</div>
+{card.trendUp !== null && (
+<span className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+card.trendUp ? 'bg-emerald-500/10 text-emerald-400' : 'bg-gray-500/10 text-gray-400'
+}`}>
+{card.trendUp ? <Icon.ArrowUp className="w-3 h-3" /> : <Icon.ArrowDown className="w-3 h-3" />}
+{card.trend}
+</span>
+)}
+{card.trendUp === null && (
+<span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-500/10 text-gray-400">{card.trend}</span>
+)}
+</div>
+<p className="text-3xl font-display font-bold text-white mb-1 tracking-tight">{card.value}</p>
+<p className="text-sm font-semibold text-gray-200">{card.title}</p>
+<p className="text-xs text-gray-500 mt-1">{card.subtitle}</p>
+
+{/* Efecto hover: brillo sutil */}
+<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+</div>
+);
+})}
+</div>
+
+{/* Gráfico comparativo: Messi vs Mbappé */}
+<div className="bg-pitch-900 border border-gray-800/60 rounded-2xl p-6 shadow-card mb-8">
+<div className="flex items-center justify-between mb-6">
+<div>
+<h3 className="text-lg font-display font-bold text-white">Duelo de Leyendas</h3>
+<p className="text-gray-400 text-sm">Comparativa de estadísticas en Copas del Mundo</p>
+</div>
+<div className="flex items-center gap-3">
+<span className="text-xs font-semibold text-gray-400 bg-pitch-800 px-3 py-1.5 rounded-full">Fase Final</span>
+<span className="text-xs font-semibold text-gold-400 bg-gold-500/10 px-3 py-1.5 rounded-full border border-gold-500/20">Actualizado 2026</span>
+</div>
+</div>
+
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+{/* Messi */}
+<div className="bg-pitch-800/40 rounded-xl p-5 border border-gray-700/30">
+<div className="flex items-center gap-4 mb-5">
+<div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#75b5e6] to-white flex items-center justify-center text-pitch-900 font-display font-bold text-lg shadow-md flex-shrink-0">
+{messiVsMbappeData.left.initials}
+</div>
+<div>
+<p className="font-display font-bold text-white text-lg">{messiVsMbappeData.left.name}</p>
+<p className="text-gray-400 text-sm">{messiVsMbappeData.left.country} {messiVsMbappeData.left.flag}</p>
+</div>
+</div>
+<div className="space-y-3">
+{messiVsMbappeData.left.stats.map((stat, i) => (
+<div key={i} className="flex items-center gap-3">
+<span className="text-xs text-gray-400 w-20 flex-shrink-0">{stat.label}</span>
+<div className="flex-1 h-6 bg-pitch-700/50 rounded-full overflow-hidden relative">
+<div
+className="h-full rounded-full bg-gradient-to-r from-[#75b5e6] to-[#a8d8f0] transition-all duration-700"
+style={{ width: `${(stat.value / stat.max) * 100}%` }}
+></div>
+</div>
+<span className="text-sm font-semibold text-white w-16 text-right flex-shrink-0">
+{stat.value}{stat.suffix || ''}
+</span>
+</div>
+))}
+</div>
+</div>
+
+{/* Mbappé */}
+<div className="bg-pitch-800/40 rounded-xl p-5 border border-gray-700/30">
+<div className="flex items-center gap-4 mb-5">
+<div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1a3a8a] to-[#e5212d] flex items-center justify-center text-white font-display font-bold text-lg shadow-md flex-shrink-0">
+{messiVsMbappeData.right.initials}
+</div>
+<div>
+<p className="font-display font-bold text-white text-lg">{messiVsMbappeData.right.name}</p>
+<p className="text-gray-400 text-sm">{messiVsMbappeData.right.country} {messiVsMbappeData.right.flag}</p>
+</div>
+</div>
+<div className="space-y-3">
+{messiVsMbappeData.right.stats.map((stat, i) => (
+<div key={i} className="flex items-center gap-3">
+<span className="text-xs text-gray-400 w-20 flex-shrink-0">{stat.label}</span>
+<div className="flex-1 h-6 bg-pitch-700/50 rounded-full overflow-hidden relative">
+<div
+className="h-full rounded-full bg-gradient-to-r from-[#1a3a8a] to-[#e5212d] transition-all duration-700"
+style={{ width: `${(stat.value / stat.max) * 100}%` }}
+></div>
+</div>
+<span className="text-sm font-semibold text-white w-16 text-right flex-shrink-0">
+{stat.value}{stat.suffix || ''}
+</span>
+</div>
+))}
+</div>
+</div>
+</div>
+
+{/* VS central */}
+<div className="flex justify-center -my-2 relative z-10">
+<div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-glow border-2 border-pitch-900">
+<span className="text-pitch-950 font-display font-bold text-sm">VS</span>
+</div>
+</div>
+</div>
+
+{/* Sección inferior: Últimos partidos simulados */}
+<div className="bg-pitch-900 border border-gray-800/60 rounded-2xl p-6 shadow-card">
+<h3 className="text-lg font-display font-bold text-white mb-4">Últimos Resultados</h3>
+<div className="space-y-3">
+{[
+{ home: 'Argentina', away: 'Francia', score: '3-3', pens: '(4-2)', date: 'Final 2022', highlight: true },
+{ home: 'Croacia', away: 'Marruecos', score: '2-1', pens: '', date: '3er Puesto 2022', highlight: false },
+{ home: 'Argentina', away: 'Croacia', score: '3-0', pens: '', date: 'Semifinal 2022', highlight: false },
+{ home: 'Francia', away: 'Marruecos', score: '2-0', pens: '', date: 'Semifinal 2022', highlight: false },
+].map((match, i) => (
+<div key={i} className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+match.highlight ? 'bg-gold-500/5 border border-gold-500/15' : 'bg-pitch-800/30 border border-transparent hover:border-gray-700/30'
+}`}>
+<div className="flex items-center gap-3 flex-1">
+<span className="text-xs text-gray-500 w-24">{match.date}</span>
+<span className="font-medium text-white text-sm">{match.home}</span>
+</div>
+<div className="flex items-center gap-3 flex-shrink-0">
+<span className="font-display font-bold text-white text-sm">{match.score}</span>
+{match.pens && <span className="text-xs text-gold-400 font-semibold">{match.pens}</span>}
+</div>
+<div className="flex-1 text-right">
+<span className="font-medium text-white text-sm">{match.away}</span>
+</div>
+</div>
+))}
+</div>
+</div>
+</div>
+);
+}
+
+// ============================================================
+// VISTA: PANEL ADMINISTRATIVO (CRUD Jugadores)
+// ============================================================
+function AdminPanelView() {
+const [players, setPlayers] = React.useState(mockPlayers);
+const [deleteTarget, setDeleteTarget] = React.useState(null);
+const [toast, setToast] = React.useState({ message: '', type: '', visible: false });
+const [filterCountry, setFilterCountry] = React.useState('all');
+
+const showToast = (message, type) => {
+setToast({ message, type, visible: true });
+setTimeout(() => setToast({ message: '', type: '', visible: false }), 2500);
+};
+
+const handleDelete = (player) => {
+setDeleteTarget(player);
+};
+
+const confirmDelete = () => {
+if (deleteTarget) {
+setPlayers(players.filter(p => p.id !== deleteTarget.id));
+showToast(`${deleteTarget.name} ha sido eliminado correctamente.`, 'success');
+setDeleteTarget(null);
+}
+};
+
+const handleEdit = (player) => {
+showToast(`Editando a ${player.name}... (simulado)`, 'success');
+};
+
+const filteredPlayers = filterCountry === 'all' ? players : players.filter(p => p.country === filterCountry);
+
+const countries = [...new Set(mockPlayers.map(p => p.country))];
+
+return (
+<div className="view-enter">
+<DashboardHeader title="Panel de Jugadores" subtitle="Gestión de estadísticas individuales" />
+
+{/* Filtros */}
+<div className="flex flex-wrap items-center gap-3 mb-6">
+<span className="text-sm text-gray-400">Filtrar por país:</span>
+<button
+onClick={() => setFilterCountry('all')}
+className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+filterCountry === 'all' ? 'bg-gold-500/15 text-gold-400 border border-gold-500/30' : 'bg-pitch-800/50 text-gray-400 border border-gray-700/30 hover:border-gray-600'
+}`}
+>
+Todos
+</button>
+{countries.map((country, i) => (
+<button
+key={i}
+onClick={() => setFilterCountry(country)}
+className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+filterCountry === country ? 'bg-gold-500/15 text-gold-400 border border-gold-500/30' : 'bg-pitch-800/50 text-gray-400 border border-gray-700/30 hover:border-gray-600'
+}`}
+>
+{country}
+</button>
+))}
+</div>
+
+{/* Tabla */}
+<div className="bg-pitch-900 border border-gray-800/60 rounded-2xl shadow-card overflow-hidden">
+<div className="overflow-x-auto">
+<table className="w-full">
+<thead>
+<tr className="border-b border-gray-800/60 bg-pitch-800/30">
+<th className="text-left py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Jugador</th>
+<th className="text-left py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">País</th>
+<th className="text-center py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Goles</th>
+<th className="text-center py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Asistencias</th>
+<th className="text-center py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Mundiales</th>
+<th className="text-right py-4 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
+</tr>
+</thead>
+<tbody>
+{filteredPlayers.map((player) => (
+<tr key={player.id} className="border-b border-gray-800/40 table-row-hover">
+{/* Jugador con avatar */}
+<td className="py-3.5 px-5">
+<div className="flex items-center gap-3">
+<div
+className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-sm"
+style={{ background: `linear-gradient(135deg, ${player.color}, ${player.color}88)` }}
+>
+{player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+</div>
+<div>
+<p className="text-sm font-semibold text-white">{player.name}</p>
+</div>
+</div>
+</td>
+{/* País con bandera */}
+<td className="py-3.5 px-5">
+<div className="flex items-center gap-2">
+<span className="text-lg">{player.flag}</span>
+<span className="text-sm text-gray-300">{player.country}</span>
+</div>
+</td>
+{/* Goles */}
+<td className="py-3.5 px-5 text-center">
+<span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-lg bg-gold-500/10 text-gold-400 font-display font-bold text-sm">
+{player.goals}
+</span>
+</td>
+{/* Asistencias */}
+<td className="py-3.5 px-5 text-center">
+<span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 font-display font-bold text-sm">
+{player.assists}
+</span>
+</td>
+{/* Mundiales */}
+<td className="py-3.5 px-5 text-center">
+<span className="text-sm text-gray-300 font-medium">{player.worldCups}</span>
+</td>
+{/* Acciones */}
+<td className="py-3.5 px-5 text-right">
+<div className="flex items-center justify-end gap-1.5">
+<button
+onClick={() => handleEdit(player)}
+className="p-2 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"
+title="Editar"
+>
+<Icon.Edit className="w-4 h-4" />
+</button>
+<button
+onClick={() => handleDelete(player)}
+className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+title="Eliminar"
+>
+<Icon.Trash2 className="w-4 h-4" />
+</button>
+</div>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
+
+{/* Footer de la tabla */}
+<div className="flex items-center justify-between px-5 py-4 border-t border-gray-800/60">
+<p className="text-sm text-gray-500">Mostrando {filteredPlayers.length} de {mockPlayers.length} jugadores</p>
+<div className="flex items-center gap-2">
+<button className="p-2 rounded-lg bg-pitch-800/50 text-gray-500 border border-gray-700/30 cursor-not-allowed opacity-50">
+<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15,18 9,12 15,6"/></svg>
+</button>
+<span className="text-sm text-gray-300 font-medium px-3">Página 1</span>
+<button className="p-2 rounded-lg bg-pitch-800/50 text-gray-400 border border-gray-700/30 hover:border-gray-600 hover:text-gray-200 transition-all">
+<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9,18 15,12 9,6"/></svg>
+</button>
+</div>
+</div>
+</div>
+
+{/* Modal de confirmación */}
+<ConfirmModal
+isOpen={deleteTarget !== null}
+onClose={() => setDeleteTarget(null)}
+onConfirm={confirmDelete}
+playerName={deleteTarget?.name || ''}
+/>
+
+{/* Toast */}
+<Toast message={toast.message} type={toast.type} isVisible={toast.visible} />
+</div>
+);
+}
+
+// ============================================================
+// COMPONENTE PRINCIPAL: APP
+// ============================================================
+function App() {
+const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+const [currentView, setCurrentView] = React.useState('dashboard');
+
+const handleLogin = () => {
+setIsLoggedIn(true);
+setCurrentView('dashboard');
+};
+
+const handleLogout = () => {
+setIsLoggedIn(false);
+setCurrentView('dashboard');
+};
+
+const handleNavigate = (viewId) => {
+setCurrentView(viewId);
+};
+
+// Si no está logueado, mostrar Login
+if (!isLoggedIn) {
+return <LoginScreen onLogin={handleLogin} />;
+}
+
+// Layout principal con Sidebar
+return (
+<div className="flex h-screen overflow-hidden bg-pitch-950">
+<Sidebar
+currentView={currentView}
+onNavigate={handleNavigate}
+onLogout={handleLogout}
+/>
+{/* Contenido principal */}
+<main className="flex-1 overflow-y-auto p-6 lg:p-8">
+{currentView === 'dashboard' && <DashboardView />}
+{currentView === 'admin' && <AdminPanelView />}
+{currentView === 'stats' && (
+<div className="view-enter flex items-center justify-center h-full">
+<div className="text-center">
+<div className="w-20 h-20 rounded-full bg-pitch-800/50 border border-gray-700/30 flex items-center justify-center mx-auto mb-4">
+<Icon.BarChart3 className="w-10 h-10 text-gray-500" />
+</div>
+<h3 className="text-xl font-display font-bold text-white mb-2">Estadísticas Avanzadas</h3>
+<p className="text-gray-400 text-sm max-w-md">Sección en desarrollo. Aquí podrás explorar gráficos interactivos y comparativas detalladas.</p>
+</div>
+</div>
+)}
+{currentView === 'settings' && (
+<div className="view-enter flex items-center justify-center h-full">
+<div className="text-center">
+<div className="w-20 h-20 rounded-full bg-pitch-800/50 border border-gray-700/30 flex items-center justify-center mx-auto mb-4">
+<Icon.Settings className="w-10 h-10 text-gray-500" />
+</div>
+<h3 className="text-xl font-display font-bold text-white mb-2">Configuración</h3>
+<p className="text-gray-400 text-sm max-w-md">Panel de configuración en desarrollo. Personaliza tu experiencia aquí.</p>
+</div>
+</div>
+)}
+</main>
+</div>
+);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+const rootElement = document.getElementById('root');
+const root = ReactDOM.createRoot(rootElement);
+root.render(<App />);
+</script>
+</body>
+</html>

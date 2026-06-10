@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup Stats — Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['Syne', 'sans-serif'],
+              body: ['DM Sans', 'sans-serif'],
+            },
+            colors: {
+              navy: { 950:'#060a14', 900:'#0b1120', 800:'#111827', 700:'#1a2540', 600:'#1e293b' },
+              gold: { 300:'#f5d98a', 400:'#f0c75e', 500:'#d4a843', 600:'#b8922e' },
+            }
+          }
+        }
+      }
+    </script>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    <script crossorigin src="https://unpkg.com/recharts@2.15.3/umd/Recharts.js"></script>
+
+    <style>
+      *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'DM Sans', sans-serif; background:#060a14; color:#f1f5f9; overflow-x:hidden; }
+
+      ::-webkit-scrollbar { width:5px; }
+      ::-webkit-scrollbar-track { background:#0b1120; }
+      ::-webkit-scrollbar-thumb { background:#1e293b; border-radius:3px; }
+      ::-webkit-scrollbar-thumb:hover { background:#334155; }
+
+      @keyframes fadeUp   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+      @keyframes slideL   { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+      @keyframes scaleIn  { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+      @keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+      @keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+      .a-fu  { animation:fadeUp .55s ease both; }
+      .a-fi  { animation:fadeIn .5s ease both; }
+      .a-sl  { animation:slideL .5s ease both; }
+      .a-sc  { animation:scaleIn .4s ease both; }
+      .d1{animation-delay:.08s} .d2{animation-delay:.16s} .d3{animation-delay:.24s}
+      .d4{animation-delay:.32s} .d5{animation-delay:.40s} .d6{animation-delay:.48s} .d7{animation-delay:.56s}
+
+      .glass { background:rgba(17,24,39,.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.04); }
+      .text-gold-grad { background:linear-gradient(135deg,#f0c75e,#d4a843 55%,#f0c75e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+      .noise::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:.35;
+        background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      }
+
+      /* football pitch subtle lines */
+      .pitch-lines { position:relative; }
+      .pitch-lines::before { content:''; position:absolute; inset:0; opacity:.02;
+        background-image: repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(255,255,255,.6) 38px, rgba(255,255,255,.6) 39px);
+        pointer-events:none;
+      }
+    </style>
+</head>
+<body class="noise">
+<div id="root"></div>
+
+<script type="text/babel">
+/* ===================================================================
+   WORLD CUP STATS — POC
+   =================================================================== */
+const { useState, useEffect, Fragment } = React;
+const {
+  AreaChart, Area, BarChart, Bar, LineChart, Line, RadarChart, Radar,
+  PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend
+} = Recharts;
+
+/* ─────────────── ICONS (inline SVG) ─────────────── */
+const I = {
+  Home:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  Users:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  Trophy:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+  BarChart:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>,
+  Settings:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  Search:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
+  Edit:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Trash:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+  Plus:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  LogOut:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  Target:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+  Calendar:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  Star:p=><svg {...p} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  Shield:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  Activity:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  Eye:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  Chevron:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  Bell:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+  Ball:p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>,
+};
+const icon = (Comp, w=20, h=20) => <Comp width={w} height={h}/>;
+
+/* ─────────────── MOCK DATA ─────────────── */
+const players = [
+  { id:1,  name:'Lionel Messi',        country:'Argentina', flag:'🇦🇷', goals:13, assists:8,  matches:26, rating:9.2, pos:'DEL' },
+  { id:2,  name:'Kylian Mbappé',       country:'France',    flag:'🇫🇷', goals:12, assists:4,  matches:14, rating:8.9, pos:'DEL' },
+  { id:3,  name:'Neymar Jr',           country:'Brazil',    flag:'🇧🇷', goals:8,  assists:7,  matches:13, rating:8.5, pos:'DEL' },
+  { id:4,  name:'Cristiano Ronaldo',   country:'Portugal',  flag:'🇵🇹', goals:8,  assists:2,  matches:22, rating:8.3, pos:'DEL' },
+  { id:5,  name:'Antoine Griezmann',   country:'France',    flag:'🇫🇷', goals:4,  assists:5,  matches:14, rating:8.1, pos:'MED' },
+  { id:6,  name:'Luka Modrić',         country:'Croatia',   flag:'🇭🇷', goals:2,  assists:3,  matches:16, rating:8.0, pos:'MED' },
+  { id:7,  name:'Harry Kane',          country:'England',   flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', goals:6,  assists:3,  matches:12, rating:7.9, pos:'DEL' },
+  { id:8,  name:'Vinícius Jr',         country:'Brazil',    flag:'🇧🇷', goals:5,  assists:4,  matches:10, rating:8.4, pos:'DEL' },
+  { id:9,  name:'Julián Álvarez',      country:'Argentina', flag:'🇦🇷', goals:4,  assists:0,  matches:8,  rating:7.8, pos:'DEL' },
+  { id:10, name:'Achraf Hakimi',       country:'Morocco',   flag:'🇲🇦', goals:1,  assists:2,  matches:7,  rating:7.6, pos:'DEF' },
+];
+
+const goalsByWC = [
+  { wc:'2006', messi:1, mbappe:0, ronaldo:1 },
+  { wc:'2010', messi:0, mbappe:0, ronaldo:1 },
+  { wc:'2014', messi:4, mbappe:0, ronaldo:1 },
+  { wc:'2018', messi:1, mbappe:4, ronaldo:4 },
+  { wc:'2022', messi:7, mbappe:8, ronaldo:1 },
+];
+
+const perf = [
+  { attr:'Goles',       messi:95, mbappe:80, ronaldo:88 },
+  { attr:'Asistencias', messi:90, mbappe:60, ronaldo:70 },
+  { attr:'Regates',     messi:88, mbappe:85, ronaldo:75 },
+  { attr:'Velocidad',   messi:75, mbappe:95, ronaldo:82 },
+  { attr:'Visión',      messi:95, mbappe:70, ronaldo:78 },
+  { attr:'Tiro',        messi:85, mbappe:82, ronaldo:92 },
+];
+
+const recentMatches = [
+  { id:1, t1:'Argentina', t2:'France',  s:'3 – 3', date:'18 Dic 2022', stage:'Final',     f1:'🇦🇷', f2:'🇫🇷', extra:'(4-2 pen.)' },
+  { id:2, t1:'Croatia',   t2:'Morocco', s:'2 – 1', date:'17 Dic 2022', stage:'3er Puesto', f1:'🇭🇷', f2:'🇲🇦' },
+  { id:3, t1:'France',    t2:'Morocco', s:'2 – 0', date:'14 Dic 2022', stage:'Semifinal',  f1:'🇫🇷', f2:'🇲🇦' },
+  { id:4, t1:'Argentina', t2:'Croatia', s:'3 – 0', date:'13 Dic 2022', stage:'Semifinal',  f1:'🇦🇷', f2:'🇭🇷' },
+];
+
+const goalsByPos = [
+  { name:'Delanteros', value:156, color:'#f0c75e' },
+  { name:'Mediocampo', value:67,  color:'#60a5fa' },
+  { name:'Defensas',   value:23,  color:'#34d399' },
+  { name:'Porteros',   value:2,   color:'#f87171' },
+];
+
+const wcList = [
+  { year:2022, champion:'Argentina 🇦🇷', runnerUp:'France 🇫🇷', goals:172 },
+  { year:2018, champion:'France 🇫🇷',     runnerUp:'Croatia 🇭🇷', goals:169 },
+  { year:2014, champion:'Germany 🇩🇪',    runnerUp:'Argentina 🇦🇷', goals:171 },
+  { year:2010, champion:'Spain 🇪🇸',      runnerUp:'Netherlands 🇳🇱', goals:145 },
+];
+
+/* ─────────────── SMALL COMPONENTS ─────────────── */
+
+const Badge = ({children, color='gold'}) => {
+  const m = { gold:'bg-gold-500/12 text-gold-400', blue:'bg-blue-500/12 text-blue-400', green:'bg-emerald-500/12 text-emerald-400', red:'bg-red-500/12 text-red-400', purple:'bg-purple-500/12 text-purple-400' };
+  return <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${m[color]||m.gold}`}>{children}</span>;
+};
+
+const posColor = p => ({ DEL:'gold', MED:'blue', DEF:'green', POR:'purple' }[p]||'gold');
+
+const Avatar = ({initials, size='md'}) => {
+  const s = size==='sm'?'w-8 h-8 text-xs':'w-10 h-10 text-sm';
+  return <div className={`${s} rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center font-bold text-white border-2 border-slate-600/40`}>{initials}</div>;
+};
+
+/* ─────────────── LOGIN PAGE ─────────────── */
+
+const LoginPage = ({onLogin}) => {
+  const [email,setEmail]     = useState('admin@fifa.com');
+  const [pass,setPass]       = useState('password123');
+  const [showPass,setShow]   = useState(false);
+
+  return (
+    <div className="min-h-screen flex">
+      {/* LEFT HERO */}
+      <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden pitch-lines">
+        {/* gradients */}
+        <div className="absolute inset-0 bg-gradient-to-br from-navy-950 via-[#0f1a30] to-navy-950"/>
+        <div className="absolute top-16 left-16 w-80 h-80 rounded-full bg-gold-500/[.07] blur-[100px]"/>
+        <div className="absolute bottom-10 right-0 w-[420px] h-[420px] rounded-full bg-blue-600/[.06] blur-[120px]"/>
+        {/* hex pattern */}
+        <div className="absolute inset-0 opacity-[.03]" style={{backgroundImage:`url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 2l22 12.7v25.4L28 52.8 6 40.1V14.7z' fill='none' stroke='%23fff' stroke-width='.4'/%3E%3C/svg%3E")`, backgroundSize:'56px 56px'}}/>
+
+        <div className="relative z-10 flex flex-col justify-center px-16 xl:px-24 max-w-xl">
+          <div className="a-fu d1">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center mb-8 shadow-lg shadow-gold-500/25">
+              {icon(I.Trophy,24,24)}
+            </div>
+          </div>
+          <h1 className="font-display text-[3.4rem] xl:text-[4rem] font-extrabold leading-[1.05] mb-6 a-fu d2">
+            <span className="text-white">World Cup</span><br/>
+            <span className="text-gold-grad">Statistics</span>
+          </h1>
+          <p className="text-slate-400 text-[1.05rem] leading-relaxed max-w-md a-fu d3">
+            La plataforma definitiva para explorar estadísticas históricas del Mundial de Fútbol. Datos, análisis y comparaciones en tiempo real.
+          </p>
+          <div className="flex gap-10 mt-14 a-fu d4">
+            {[['22+','Mundiales'],['2,724','Partidos'],['8,000+','Goles']].map(([v,l])=>(
+              <div key={l}>
+                <div className="font-display text-[2rem] font-bold text-white">{v}</div>
+                <div className="text-xs text-slate-500 mt-0.5 uppercase tracking-wider">{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT FORM */}
+      <div className="w-full lg:w-[48%] flex items-center justify-center p-8 bg-[#0c1222]">
+        <div className="w-full max-w-md">
+          {/* mobile logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-10 a-fu d1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">{icon(I.Trophy,20,20)}</div>
+            <span className="font-display text-xl font-bold text-white">World Cup Stats</span>
+          </div>
+
+          <h2 className="font-display text-3xl font-bold text-white mb-1.5 a-fu d1">Bienvenido de nuevo</h2>
+          <p className="text-slate-500 mb-8 a-fu d2">Ingresa tus credenciales para acceder al dashboard.</p>
+
+          <form onSubmit={e=>{e.preventDefault();onLogin();}} className="space-y-5 a-fu d3">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Correo Electrónico</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </span>
+                <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3.5 bg-[#131b2e] border border-slate-700/40 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-gold-500/50 focus:ring-2 focus:ring-gold-500/15 transition-all"/>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Contraseña</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <input type={showPass?'text':'password'} value={pass} onChange={e=>setPass(e.target.value)}
+                  className="w-full pl-11 pr-12 py-3.5 bg-[#131b2e] border border-slate-700/40 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-gold-500/50 focus:ring-2 focus:ring-gold-500/15 transition-all"/>
+                <button type="button" onClick={()=>setShow(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                  {icon(I.Eye,18,18)}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-600 bg-[#131b2e] text-gold-500 focus:ring-gold-500/30 accent-[#d4a843]"/>
+                <span className="text-sm text-slate-400">Recordarme</span>
+              </label>
+              <a href="#" className="text-sm text-gold-500 hover:text-gold-400 transition-colors">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit"
+              className="w-full py-3.5 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 font-display font-bold text-[1.05rem] rounded-xl hover:from-gold-400 hover:to-gold-500 transition-all duration-300 shadow-lg shadow-gold-500/25 hover:shadow-gold-500/40 hover:-translate-y-0.5 active:translate-y-0">
+              Iniciar Sesión
+            </button>
+          </form>
+
+          <div className="relative my-7 a-fu d4">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700/40"/></div>
+            <div className="relative flex justify-center"><span className="px-4 text-sm text-slate-500 bg-[#0c1222]">o continúa con</span></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 a-fu d5">
+            {[
+              {label:'Google', svg:<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>},
+              {label:'GitHub', svg:<svg width="18" height="18" viewBox="0 0 24 24" fill="#e2e8f0"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>}
+            ].map(s=>(
+              <button key={s.label} className="flex items-center justify-center gap-2.5 py-3 bg-[#131b2e] border border-slate-700/40 rounded-xl text-slate-300 hover:bg-[#1a2540] hover:border-slate-600 transition-all duration-200">
+                {s.svg}<span className="text-sm font-medium">{s.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center text-sm text-slate-500 a-fu d6">
+            ¿No tienes cuenta? <a href="#" className="text-gold-500 hover:text-gold-400 font-medium transition-colors">Regístrate aquí</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────── SIDEBAR ─────────────── */
+
+const Sidebar = ({active, setActive, onLogout}) => {
+  const nav = [
+    { id:'dashboard', label:'Dashboard',    icon:I.Home },
+    { id:'players',   label:'Jugadores',    icon:I.Users },
+    { id:'matches',   label:'Partidos',     icon:I.Calendar },
+    { id:'stats',     label:'Estadísticas', icon:I.BarChart },
+    { id:'admin',     label:'Admin Panel',  icon:I.Settings },
+  ];
+  return (
+    <aside className="w-64 bg-[#0a0f1d] border-r border-slate-800/40 flex flex-col h-screen fixed left-0 top-0 z-30">
+      {/* logo */}
+      <div className="p-5 border-b border-slate-800/40">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
+            {icon(I.Trophy,20,20)}
+          </div>
+          <div>
+            <div className="font-display text-[1.05rem] font-bold text-white leading-none">World Cup</div>
+            <div className="text-[10px] text-gold-500 font-semibold tracking-[.18em]">STATISTICS</div>
+          </div>
+        </div>
+      </div>
+
+      {/* nav */}
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <div className="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-600 uppercase tracking-[.14em]">Menú Principal</div>
+        {nav.map(n=>{
+          const on = active===n.id;
+          return (
+            <button key={n.id} onClick={()=>setActive(n.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative
+                ${on
+                  ? 'bg-gradient-to-r from-gold-500/[.12] to-transparent text-gold-400'
+                  : 'text-slate-500 hover:text-slate-200 hover:bg-white/[.03]'
+                }`}>
+              {on && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gold-500"/>}
+              <span className={on?'text-gold-500':'text-slate-600 group-hover:text-slate-400 transition-colors'}>{icon(n.icon,18,18)}</span>
+              {n.label}
+              {on && <span className="ml-auto text-gold-500/60">{icon(I.Chevron,14,14)}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* user card */}
+      <div className="p-3 border-t border-slate-800/40">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[.02]">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold">AD</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-white truncate">Admin User</div>
+            <div className="text-[11px] text-slate-600 truncate">admin@fifa.com</div>
+          </div>
+          <button onClick={onLogout} className="text-slate-600 hover:text-red-400 transition-colors" title="Salir">{icon(I.LogOut,16,16)}</button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+/* ─────────────── TOP BAR ─────────────── */
+
+const TopBar = () => (
+  <header className="flex items-center justify-between mb-7 a-fi">
+    <div className="relative">
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600">{icon(I.Search,16,16)}</span>
+      <input placeholder="Buscar jugador, equipo, mundial..."
+        className="pl-10 pr-4 py-2.5 w-80 bg-[#131b2e] border border-slate-800/40 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-gold-500/40 focus:ring-2 focus:ring-gold-500/10 transition-all"/>
+    </div>
+    <div className="flex items-center gap-3">
+      <button className="w-10 h-10 rounded-xl bg-[#131b2e] border border-slate-800/40 flex items-center justify-center text-slate-500 hover:text-white hover:border-slate-700 transition-all relative">
+        {icon(I.Bell,18,18)}
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">3</span>
+      </button>
+      <div className="w-px h-7 bg-slate-800"/>
+      <div className="flex items-center gap-2.5 pl-1">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-[11px] font-bold border-2 border-slate-700/60">AD</div>
+        <div className="hidden sm:block">
+          <div className="text-sm font-medium text-white leading-none">Admin</div>
+          <div className="text-[11px] text-slate-600">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </header>
+);
+
+/* ─────────────── DASHBOARD VIEW ─────────────── */
+
+const StatCard = ({Icon,label,value,sub,color,delay}) => (
+  <div className={`bg-[#131b2e] border border-slate-800/40 rounded-2xl p-5 hover:border-slate-700/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 a-fu ${delay}`}>
+    <div className="flex items-start justify-between mb-3.5">
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>{icon(Icon,20,20)}</div>
+      {sub && <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">{sub}</span>}
+    </div>
+    <div className="font-display text-[1.55rem] font-bold text-white leading-tight">{value}</div>
+    <div className="text-xs text-slate-500 mt-1">{label}</div>
+  </div>
+);
+
+const ChartTooltip = ({active,payload,label}) => {
+  if(!active||!payload?.length) return null;
+  return (
+    <div className="bg-[#1a2540] border border-slate-700/50 rounded-xl p-3 shadow-2xl">
+      <p className="text-xs font-semibold text-white mb-1.5">Mundial {label}</p>
+      {payload.map((e,i)=>(
+        <p key={i} className="text-[11px] text-slate-300 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full" style={{background:e.color}}/>{e.name}: <b className="text-white">{e.value}</b>
+        </p>
+      ))}
+    </div>
+  );
+};
+
+const RadarTooltip = ({active,payload}) => {
+  if(!active||!payload?.length) return null;
+  return (
+    <div className="bg-[#1a2540] border border-slate-700/50 rounded-xl p-3 shadow-2xl">
+      {payload.map((e,i)=>(
+        <p key={i} className="text-[11px]"><span className="font-semibold" style={{color:e.color}}>{e.name}:</span> <span className="text-white">{e.value}</span></p>
+      ))}
+    </div>
+  );
+};
+
+const DashboardView = () => (
+  <div className="space-y-6">
+    <div className="a-fu">
+      <h1 className="font-display text-[1.85rem] font-bold text-white">Dashboard</h1>
+      <p className="text-slate-500 text-sm mt-0.5">Resumen general — Mundial FIFA Qatar 2022</p>
+    </div>
+
+    {/* KPI cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <StatCard Icon={I.Target} label="Goleador Histórico" value="Miroslav Klose" sub="16 goles" color="bg-gold-500/10 text-gold-500" delay="d1"/>
+      <StatCard Icon={I.Shield}  label="Campeón Actual" value="Argentina 🇦🇷" sub="Qatar 2022" color="bg-blue-500/10 text-blue-400" delay="d2"/>
+      <StatCard Icon={I.Calendar} label="Total Partidos" value="2,724" sub="+64 este torneo" color="bg-emerald-500/10 text-emerald-400" delay="d3"/>
+      <StatCard Icon={I.Activity} label="Goles en Torneo" value="172" sub="2.7 / partido" color="bg-violet-500/10 text-violet-400" delay="d4"/>
+    </div>
+
+    {/* Charts row */}
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      {/* Area chart */}
+      <div className="xl:col-span-2 bg-[#131b2e] border border-slate-800/40 rounded-2xl p-6 a-fu d3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-2">
+          <div>
+            <h3 className="font-display text-lg font-bold text-white">Goles por Mundial</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Comparativa Messi · Mbappé · Ronaldo</p>
+          </div>
+          <div className="flex items-center gap-4 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f0c75e]"/>Messi</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#60a5fa]"/>Mbappé</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f87171]"/>Ronaldo</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={270}>
+          <AreaChart data={goalsByWC}>
+            <defs>
+              <linearGradient id="gG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f0c75e" stopOpacity=".25"/><stop offset="95%" stopColor="#f0c75e" stopOpacity="0"/></linearGradient>
+              <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#60a5fa" stopOpacity=".25"/><stop offset="95%" stopColor="#60a5fa" stopOpacity="0"/></linearGradient>
+              <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f87171" stopOpacity=".25"/><stop offset="95%" stopColor="#f87171" stopOpacity="0"/></linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b"/>
+            <XAxis dataKey="wc" stroke="#475569" fontSize={12} tickLine={false}/>
+            <YAxis stroke="#475569" fontSize={12} tickLine={false} axisLine={false}/>
+            <Tooltip content={<ChartTooltip/>}/>
+            <Area type="monotone" dataKey="messi"   name="Messi"   stroke="#f0c75e" fill="url(#gG)" strokeWidth={2.5} dot={{r:4,fill:'#f0c75e',stroke:'#0b1120',strokeWidth:2}}/>
+            <Area type="monotone" dataKey="mbappe"  name="Mbappé"  stroke="#60a5fa" fill="url(#gB)" strokeWidth={2.5} dot={{r:4,fill:'#60a5fa',stroke:'#0b1120',strokeWidth:2}}/>
+            <Area type="monotone" dataKey="ronaldo" name="Ronaldo" stroke="#f87171" fill="url(#gR)" strokeWidth={2.5} dot={{r:4,fill:'#f87171',stroke:'#0b1120',strokeWidth:2}}/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Radar */}
+      <div className="bg-[#131b2e] border border-slate-800/40 rounded-2xl p-6 a-fu d4">
+        <h3 className="font-display text-lg font-bold text-white">Perfil de Rendimiento</h3>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">Comparativa Messi vs Mbappé</p>
+        <ResponsiveContainer width="100%" height={250}>
+          <RadarChart data={perf}>
+            <PolarGrid stroke="#1e293b"/>
+            <PolarAngleAxis dataKey="attr" stroke="#475569" fontSize={11}/>
+            <PolarRadiusAxis angle={30} domain={[0,100]} tick={false} axisLine={false}/>
+            <Radar name="Messi"  dataKey="messi"  stroke="#f0c75e" fill="#f0c75e" fillOpacity=".12" strokeWidth={2}/>
+            <Radar name="Mbappé" dataKey="mbappe" stroke="#60a5fa" fill="#60a5fa" fillOpacity=".12" strokeWidth={2}/>
+            <Tooltip content={<RadarTooltip/>}/>
+          </RadarChart>
+        </ResponsiveContainer>
+        <div className="flex items-center justify-center gap-5 mt-1 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f0c75e]"/>Messi</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#60a5fa]"/>Mbappé</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Bottom */}
+    <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
+      {/* Matches */}
+      <div className="xl:col-span-3 bg-[#131b2e] border border-slate-800/40 rounded-2xl p-6 a-fu d5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-lg font-bold text-white">Últimos Partidos</h3>
+          <button className="text-xs text-gold-500 hover:text-gold-400 font-medium transition-colors">Ver todos →</button>
+        </div>
+        <div className="space-y-2.5">
+          {recentMatches.map((m,i)=>(
+            <div key={m.id} className={`flex items-center justify-between p-3.5 rounded-xl bg-navy-950/60 border border-slate-800/30 hover:border-slate-700/40 transition-all a-fu d${i+1}`}>
+              <div className="w-20 text-center shrink-0">
+                <div className="text-[10px] text-gold-500/70 font-semibold uppercase">{m.stage}</div>
+                <div className="text-[11px] text-slate-500">{m.date}</div>
+              </div>
+              <div className="flex items-center gap-3 flex-1 justify-center">
+                <span className="text-sm font-medium text-white text-right min-w-[90px]">{m.t1}</span>
+                <span className="text-xl">{m.f1}</span>
+                <div className="px-3 py-1 bg-gradient-to-r from-gold-500/8 to-gold-500/4 rounded-lg border border-gold-500/15">
+                  <span className="font-display font-bold text-sm text-white">{m.s}</span>
+                </div>
+                <span className="text-xl">{m.f2}</span>
+                <span className="text-sm font-medium text-white min-w-[90px]">{m.t2}</span>
+              </div>
+              <button className="w-8 h-8 rounded-lg bg-slate-800/40 flex items-center justify-center text-slate-600 hover:text-white hover:bg-slate-700/50 transition-all shrink-0">
+                {icon(I.Eye,14,14)}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pie */}
+      <div className="xl:col-span-2 bg-[#131b2e] border border-slate-800/40 rounded-2xl p-6 a-fu d6">
+        <h3 className="font-display text-lg font-bold text-white">Goles por Posición</h3>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">Distribución mundial 2022</p>
+        <ResponsiveContainer width="100%" height={190}>
+          <PieChart>
+            <Pie data={goalsByPos} cx="50%" cy="50%" innerRadius={52} outerRadius={76} paddingAngle={4} dataKey="value">
+              {goalsByPos.map((e,i)=><Cell key={i} fill={e.color} stroke="none"/>)}
+            </Pie>
+            <Tooltip formatter={v=>`${v} goles`} contentStyle={{background:'#1a2540',border:'1px solid rgba(100,116,139,.3)',borderRadius:12,fontSize:12}}/>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="space-y-2.5 mt-3">
+          {goalsByPos.map((g,i)=>(
+            <div key={i} className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{background:g.color}}/><span className="text-slate-400">{g.name}</span></span>
+              <span className="font-semibold text-white">{g.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─────────────── ADMIN VIEW ─────────────── */
+
+const AdminView = () => {
+  const [q,setQ] = useState('');
+  const filtered = players.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||p.country.toLowerCase().includes(q.toLowerCase()));
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 a-fu">
+        <div>
+          <h1 className="font-display text-[1.85rem] font-bold text-white">Panel de Administración</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Gestiona estadísticas de jugadores del Mundial</p>
+        </div>
+        <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 font-display font-bold rounded-xl hover:from-gold-400 hover:to-gold-500 transition-all shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30 hover:-translate-y-0.5 shrink-0">
+          {icon(I.Plus,16,16)} Nuevo Jugador
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 a-fu d1">
+        <div className="relative flex-1">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">{icon(I.Search,16,16)}</span>
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar jugador o país..."
+            className="w-full pl-11 pr-4 py-3 bg-[#131b2e] border border-slate-800/40 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-gold-500/40 focus:ring-2 focus:ring-gold-500/10 transition-all"/>
+        </div>
+        <select className="px-4 py-3 bg-[#131b2e] border border-slate-800/40 rounded-xl text-sm text-slate-400 focus:outline-none focus:border-gold-500/40 appearance-none cursor-pointer">
+          <option>Todas las posiciones</option><option>Delantero</option><option>Mediocampo</option><option>Defensa</option><option>Portero</option>
+        </select>
+        <select className="px-4 py-3 bg-[#131b2e] border border-slate-800/40 rounded-xl text-sm text-slate-400 focus:outline-none focus:border-gold-500/40 appearance-none cursor-pointer">
+          <option>Ordenar por Goles</option><option>Ordenar por Asistencias</option><option>Ordenar por Rating</option><option>Ordenar por Nombre</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="bg-[#131b2e] border border-slate-800/40 rounded-2xl overflow-hidden a-fu d2">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-800/50">
+                {['Jugador','País','Pos','PJ','Goles','Asist.','Rating','Acciones'].map(h=>(
+                  <th key={h} className={`${h==='Jugador'||h==='País'?'text-left':'text-center'} px-5 py-3.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider`}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p,i)=>(
+                <tr key={p.id} className="border-b border-slate-800/20 hover:bg-white/[.02] transition-colors a-fi" style={{animationDelay:`${i*.04}s`}}>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <Avatar initials={p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}/>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{p.name}</div>
+                        <div className="text-[11px] text-slate-600">ID #{String(p.id).padStart(2,'0')}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="flex items-center gap-2 text-sm text-slate-300"><span className="text-lg">{p.flag}</span>{p.country}</span>
+                  </td>
+                  <td className="px-5 py-3.5 text-center"><Badge color={posColor(p.pos)}>{p.pos}</Badge></td>
+                  <td className="px-5 py-3.5 text-center text-sm text-slate-300">{p.matches}</td>
+                  <td className="px-5 py-3.5 text-center"><span className="text-sm font-bold text-gold-400">{p.goals}</span></td>
+                  <td className="px-5 py-3.5 text-center text-sm text-slate-300">{p.assists}</td>
+                  <td className="px-5 py-3.5 text-center">
+                    <span className="inline-flex items-center gap-1 text-gold-400">{icon(I.Star,14,14)}<span className="text-sm font-bold text-white">{p.rating}</span></span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 flex items-center justify-center transition-colors" title="Editar">{icon(I.Edit,14,14)}</button>
+                      <button className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-colors" title="Eliminar">{icon(I.Trash,14,14)}</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-800/40">
+          <span className="text-xs text-slate-600">Mostrando {filtered.length} de {players.length} jugadores</span>
+          <div className="flex items-center gap-1">
+            {[1,2,3].map(n=>(
+              <button key={n} className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${n===1?'bg-gold-500/15 text-gold-400 border border-gold-500/25':'text-slate-600 hover:text-white hover:bg-slate-800/40'}`}>{n}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────── MATCHES PLACEHOLDER ─────────────── */
+const MatchesView = () => (
+  <div className="space-y-6 a-fu">
+    <div>
+      <h1 className="font-display text-[1.85rem] font-bold text-white">Partidos</h1>
+      <p className="text-slate-500 text-sm mt-0.5">Historial completo de encuentros mundialistas</p>
+    </div>
+    <div className="grid gap-4">
+      {wcList.map((w,i)=>(
+        <div key={w.year} className={`bg-[#131b2e] border border-slate-800/40 rounded-2xl p-5 flex items-center justify-between hover:border-slate-700/50 transition-all a-fu d${i+1}`}>
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 rounded-xl bg-gold-500/10 flex items-center justify-center">
+              <span className="font-display text-lg font-bold text-gold-400">{w.year}</span>
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-white">🏆 {w.champion}</div>
+              <div className="text-xs text-slate-500 mt-0.5">Finalista: {w.runnerUp}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-display text-xl font-bold text-white">{w.goals}</div>
+            <div className="text-[11px] text-slate-600">goles en el torneo</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* ─────────────── STATS PLACEHOLDER ─────────────── */
+const StatsView = () => (
+  <div className="space-y-6 a-fu">
+    <div>
+      <h1 className="font-display text-[1.85rem] font-bold text-white">Estadísticas</h1>
+      <p className="text-slate-500 text-sm mt-0.5">Datos históricos y récords mundiales</p>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {[
+        { title:'Máximo Goleador', value:'Miroslav Klose', detail:'16 goles en 4 mundiales', emoji:'🥇' },
+        { title:'Más Asistencias', value:'Pelé', detail:'10 asistencias', emoji:'🎯' },
+        { title:'Más Participaciones', value:'Antonio Carbajal & Lothar Matthäus', detail:'5 mundiales', emoji:'🔄' },
+        { title:'Goleador en un Torneo', value:'Just Fontaine', detail:'13 goles (Suecia 1958)', emoji:'⚡' },
+        { title:'Portero menos Vencido', value:'Fabien Barthez', detail:'630 min sin recibir gol (1998)', emoji:'🧤' },
+        { title:'Final más Emocionante', value:'Argentina 3-3 Francia', detail:'Qatar 2022 — (4-2 pen.)', emoji:'🔥' },
+      ].map((r,i)=>(
+        <div key={i} className={`bg-[#131b2e] border border-slate-800/40 rounded-2xl p-5 hover:border-gold-500/20 transition-all hover:-translate-y-0.5 a-fu d${i+1}`}>
+          <div className="text-2xl mb-3">{r.emoji}</div>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">{r.title}</div>
+          <div className="font-display text-lg font-bold text-white">{r.value}</div>
+          <div className="text-xs text-slate-500 mt-1">{r.detail}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* ─────────────── PLAYERS PLACEHOLDER ─────────────── */
+const PlayersView = () => (
+  <div className="space-y-6 a-fu">
+    <div>
+      <h1 className="font-display text-[1.85rem] font-bold text-white">Jugadores</h1>
+      <p className="text-slate-500 text-sm mt-0.5">Explora las leyendas del fútbol mundial</p>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {players.slice(0,8).map((p,i)=>{
+        const initials = p.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+        return (
+          <div key={p.id} className={`bg-[#131b2e] border border-slate-800/40 rounded-2xl p-5 text-center hover:border-gold-500/20 transition-all hover:-translate-y-1 a-fu d${i+1}`}>
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-lg font-bold text-white mx-auto mb-3 border-2 border-slate-600/40">{initials}</div>
+            <div className="text-sm font-semibold text-white">{p.name}</div>
+            <div className="text-xs text-slate-500 mt-0.5">{p.flag} {p.country}</div>
+            <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-slate-800/40">
+              <div><div className="font-display text-lg font-bold text-gold-400">{p.goals}</div><div className="text-[10px] text-slate-600 uppercase">Goles</div></div>
+              <div className="w-px h-8 bg-slate-800"/>
+              <div><div className="font-display text-lg font-bold text-blue-400">{p.assists}</div><div className="text-[10px] text-slate-600 uppercase">Asist.</div></div>
+              <div className="w-px h-8 bg-slate-800"/>
+              <div><div className="font-display text-lg font-bold text-white">{p.rating}</div><div className="text-[10px] text-slate-600 uppercase">Rating</div></div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+/* ─────────────── APP SHELL ─────────────── */
+
+const App = () => {
+  const [loggedIn,setLoggedIn] = useState(false);
+  const [view,setView]         = useState('dashboard');
+
+  if(!loggedIn) return <LoginPage onLogin={()=>setLoggedIn(true)}/>;
+
+  return (
+    <div className="flex min-h-screen bg-navy-950">
+      <Sidebar active={view} setActive={setView} onLogout={()=>setLoggedIn(false)}/>
+      <main className="flex-1 ml-64 p-7">
+        <TopBar/>
+        {view==='dashboard' && <DashboardView/>}
+        {view==='admin'     && <AdminView/>}
+        {view==='players'   && <PlayersView/>}
+        {view==='matches'   && <MatchesView/>}
+        {view==='stats'     && <StatsView/>}
+      </main>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
