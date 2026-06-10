@@ -29,12 +29,28 @@ export default function Home() {
 
       if (!video) return;
 
-      // Cálculo de Lerp: valor_actual = valor_actual + (objetivo - valor_actual) * factor_suavizado
-      // El factor 0.08 otorga una inercia suave y orgánica de estilo "cinemático"
+      // =========================================================================
+      // AJUSTES DE FLUIDEZ Y FÍSICA DE SCROLL (Lerp / Inercia)
+      // =========================================================================
+      // 
+      // 1. FACTOR DE SUAVIZADO (Inercia): Actualmente 0.08.
+      //    - Si disminuyes este valor (ej: 0.04, 0.02), el video se desplazará de forma 
+      //      MUCHO más lenta, suave e integrada, ideal si el video va en pequeños saltos.
+      //    - Si lo aumentas (ej: 0.15, 0.20), el video responderá de forma más instantánea
+      //      y rápida a tus dedos/rueda de mouse, pero amortiguará menos los tirones.
+      const LERP_FACTOR = 0.08; 
+
+      // 2. UMBRAL DE ESTABILIZACIÓN: Actualmente 0.0002.
+      //    - Define qué tan cerca de su destino real se considera que la animación
+      //      ya terminó. Si aumentas este valor (ej: 0.005), la animación se detendrá
+      //      de golpe al final (salto brusco). Mantenerlo muy pequeño asegura un frenado suave.
+      const STABILIZATION_THRESHOLD = 0.0002; 
+      // =========================================================================
+
       const diff = targetFractionRef.current - currentFractionRef.current;
       
-      if (Math.abs(diff) > 0.0002) {
-        currentFractionRef.current += diff * 0.08;
+      if (Math.abs(diff) > STABILIZATION_THRESHOLD) {
+        currentFractionRef.current += diff * LERP_FACTOR;
         // Continuar el bucle de animación
         animationFrameRef.current = requestAnimationFrame(updateInterpolatedElements);
       } else {
@@ -188,6 +204,14 @@ export default function Home() {
   }, []);
 
   return (
+    // =========================================================================
+    // 3. ALTURA TOTAL DE SCROLL (Recorrido Físico): Actualmente min-h-[500vh].
+    //    - Si la aumentas (ej: min-h-[700vh] o [800vh]), el scroll durará más y la
+    //      reproducción del video irá mucho más lenta y suave por cada píxel de scroll, 
+    //      haciendo que el deslizamiento muy lento sea extremadamente granular y fluido.
+    //    - Si la disminuyes (ej: min-h-[350vh]), la reproducción irá muy rápida y
+    //      hará saltos más grandes por píxel de scroll.
+    // =========================================================================
     <div className="relative min-h-[500vh] bg-black text-white select-none">
       
       {/* Contenedor de Video de Fondo Fijo */}
