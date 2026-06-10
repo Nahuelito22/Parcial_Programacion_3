@@ -9,162 +9,181 @@ export default function Home() {
   const section3Ref = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
+  // Referencias para la interpolación lineal (Lerp) / Scroll con inercia
+  const targetFractionRef = useRef(0);
+  const currentFractionRef = useRef(0);
+  const animationFrameRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
     }
 
-    let ticking = false;
+    // Función que corre en el requestAnimationFrame para suavizar todo el flujo
+    const updateInterpolatedElements = () => {
+      const video = videoRef.current;
+      const s1 = section1Ref.current;
+      const s2 = section2Ref.current;
+      const s3 = section3Ref.current;
+      const indicator = scrollIndicatorRef.current;
+
+      if (!video) return;
+
+      // Cálculo de Lerp: valor_actual = valor_actual + (objetivo - valor_actual) * factor_suavizado
+      // El factor 0.08 otorga una inercia suave y orgánica de estilo "cinemático"
+      const diff = targetFractionRef.current - currentFractionRef.current;
+      
+      if (Math.abs(diff) > 0.0002) {
+        currentFractionRef.current += diff * 0.08;
+        // Continuar el bucle de animación
+        animationFrameRef.current = requestAnimationFrame(updateInterpolatedElements);
+      } else {
+        // Estabilizar al llegar al destino y detener el bucle para ahorrar CPU
+        currentFractionRef.current = targetFractionRef.current;
+        animationFrameRef.current = null;
+      }
+
+      const fraction = currentFractionRef.current;
+
+      // 1. Scrubbing del Video (Fase de 0.0 a 0.40)
+      if (fraction <= 0.40) {
+        const videoProgress = fraction / 0.40;
+        const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+        video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
+        video.style.opacity = "1";
+      } else {
+        const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
+        video.currentTime = duration - 0.05;
+        
+        // Transición suave de desvanecimiento del video de 0.40 a 0.45
+        if (fraction <= 0.45) {
+          const fadeProgress = (fraction - 0.40) / 0.05;
+          video.style.opacity = (1 - fadeProgress).toString();
+        } else {
+          video.style.opacity = "0";
+        }
+      }
+
+      // 2. Animar el indicador de scroll inicial
+      if (indicator) {
+        const indOpacity = Math.max(0, 1 - fraction * 8);
+        indicator.style.opacity = indOpacity.toString();
+        indicator.style.transform = `translate(-50%, ${fraction * -35}px)`;
+      }
+
+      // 3. Animación de Secciones (de 0.40 a 1.0) con inercia coordinada
+      
+      // Sección 1: KPIs (rango 0.40 a 0.60)
+      if (s1) {
+        if (fraction >= 0.40 && fraction < 0.60) {
+          const localProgress = (fraction - 0.40) / 0.20;
+          let opacity = 0;
+          let translateY = 50;
+
+          if (localProgress <= 0.35) { // Entrada
+            const inProgress = localProgress / 0.35;
+            opacity = inProgress;
+            translateY = 50 - inProgress * 50;
+          } else if (localProgress > 0.35 && localProgress <= 0.65) { // Estable
+            opacity = 1;
+            translateY = 0;
+          } else { // Salida
+            const outProgress = (localProgress - 0.65) / 0.35;
+            opacity = 1 - outProgress;
+            translateY = -outProgress * 50;
+          }
+
+          s1.style.opacity = opacity.toString();
+          s1.style.transform = `translateY(${translateY}px)`;
+          s1.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
+        } else {
+          s1.style.opacity = "0";
+          s1.style.transform = fraction >= 0.60 ? "translateY(-50px)" : "translateY(50px)";
+          s1.style.pointerEvents = "none";
+        }
+      }
+
+      // Sección 2: Comparativa H2H (rango 0.60 a 0.80)
+      if (s2) {
+        if (fraction >= 0.60 && fraction < 0.80) {
+          const localProgress = (fraction - 0.60) / 0.20;
+          let opacity = 0;
+          let translateY = 50;
+
+          if (localProgress <= 0.35) { // Entrada
+            const inProgress = localProgress / 0.35;
+            opacity = inProgress;
+            translateY = 50 - inProgress * 50;
+          } else if (localProgress > 0.35 && localProgress <= 0.65) { // Estable
+            opacity = 1;
+            translateY = 0;
+          } else { // Salida
+            const outProgress = (localProgress - 0.65) / 0.35;
+            opacity = 1 - outProgress;
+            translateY = -outProgress * 50;
+          }
+
+          s2.style.opacity = opacity.toString();
+          s2.style.transform = `translateY(${translateY}px)`;
+          s2.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
+        } else {
+          s2.style.opacity = "0";
+          s2.style.transform = fraction >= 0.80 ? "translateY(-50px)" : "translateY(50px)";
+          s2.style.pointerEvents = "none";
+        }
+      }
+
+      // Sección 3: Oráculo IA (rango 0.80 a 1.0)
+      if (s3) {
+        if (fraction >= 0.80) {
+          const localProgress = Math.min((fraction - 0.80) / 0.20, 1);
+          let opacity = 0;
+          let translateY = 50;
+
+          if (localProgress <= 0.50) { // Entrada
+            const inProgress = localProgress / 0.50;
+            opacity = inProgress;
+            translateY = 50 - inProgress * 50;
+          } else { // Estable hasta el final
+            opacity = 1;
+            translateY = 0;
+          }
+
+          s3.style.opacity = opacity.toString();
+          s3.style.transform = `translateY(${translateY}px)`;
+          s3.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
+        } else {
+          s3.style.opacity = "0";
+          s3.style.transform = "translateY(50px)";
+          s3.style.pointerEvents = "none";
+        }
+      }
+    };
 
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const video = videoRef.current;
-          const s1 = section1Ref.current;
-          const s2 = section2Ref.current;
-          const s3 = section3Ref.current;
-          const indicator = scrollIndicatorRef.current;
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollFraction = docHeight > 0 ? scrollTop / docHeight : 0;
 
-          if (!video) {
-            ticking = false;
-            return;
-          }
+      // Actualizar el objetivo al que queremos llegar (target)
+      targetFractionRef.current = scrollFraction;
 
-          const scrollTop = window.scrollY;
-          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-          const scrollFraction = docHeight > 0 ? scrollTop / docHeight : 0;
-
-          // 1. Control del video (Video Scrubbing)
-          // El video se controla en el primer 40% del scroll general (0.0 a 0.4)
-          if (scrollFraction <= 0.40) {
-            const videoProgress = scrollFraction / 0.40;
-            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-            video.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
-            
-            // El video tiene opacidad completa
-            video.style.opacity = "1";
-          } else {
-            // El video se queda congelado en el final y se desvanece a negro
-            const duration = video.duration && isFinite(video.duration) ? video.duration : 10;
-            video.currentTime = duration - 0.05;
-            
-            // Transición suave del video desvaneciéndose a negro de 0.40 a 0.45 de scroll
-            if (scrollFraction <= 0.45) {
-              const fadeProgress = (scrollFraction - 0.40) / 0.05;
-              video.style.opacity = (1 - fadeProgress).toString();
-            } else {
-              video.style.opacity = "0";
-            }
-          }
-
-          // 2. Animar el indicador de scroll inicial
-          if (indicator) {
-            const indOpacity = Math.max(0, 1 - scrollFraction * 8);
-            indicator.style.opacity = indOpacity.toString();
-            indicator.style.transform = `translate(-50%, ${scrollFraction * -35}px)`;
-          }
-
-          // 3. Control del contenido (de 0.40 a 1.0)
-          // El contenido va apareciendo y desapareciendo de forma fluida secuencialmente
-
-          // Sección 1: KPIs (rango 0.40 a 0.60)
-          if (s1) {
-            if (scrollFraction >= 0.40 && scrollFraction < 0.60) {
-              const localProgress = (scrollFraction - 0.40) / 0.20; // 0 a 1
-              let opacity = 0;
-              let translateY = 50;
-
-              if (localProgress <= 0.35) { // Entrada (0.40 a 0.47)
-                const inProgress = localProgress / 0.35;
-                opacity = inProgress;
-                translateY = 50 - inProgress * 50;
-              } else if (localProgress > 0.35 && localProgress <= 0.65) { // Estable (0.47 a 0.53)
-                opacity = 1;
-                translateY = 0;
-              } else { // Salida (0.53 a 0.60)
-                const outProgress = (localProgress - 0.65) / 0.35;
-                opacity = 1 - outProgress;
-                translateY = -outProgress * 50;
-              }
-
-              s1.style.opacity = opacity.toString();
-              s1.style.transform = `translateY(${translateY}px)`;
-              s1.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
-            } else {
-              s1.style.opacity = "0";
-              s1.style.transform = scrollFraction >= 0.60 ? "translateY(-50px)" : "translateY(50px)";
-              s1.style.pointerEvents = "none";
-            }
-          }
-
-          // Sección 2: Comparativa H2H (rango 0.60 a 0.80)
-          if (s2) {
-            if (scrollFraction >= 0.60 && scrollFraction < 0.80) {
-              const localProgress = (scrollFraction - 0.60) / 0.20; // 0 a 1
-              let opacity = 0;
-              let translateY = 50;
-
-              if (localProgress <= 0.35) { // Entrada (0.60 a 0.67)
-                const inProgress = localProgress / 0.35;
-                opacity = inProgress;
-                translateY = 50 - inProgress * 50;
-              } else if (localProgress > 0.35 && localProgress <= 0.65) { // Estable (0.67 a 0.73)
-                opacity = 1;
-                translateY = 0;
-              } else { // Salida (0.73 a 0.80)
-                const outProgress = (localProgress - 0.65) / 0.35;
-                opacity = 1 - outProgress;
-                translateY = -outProgress * 50;
-              }
-
-              s2.style.opacity = opacity.toString();
-              s2.style.transform = `translateY(${translateY}px)`;
-              s2.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
-            } else {
-              s2.style.opacity = "0";
-              s2.style.transform = scrollFraction >= 0.80 ? "translateY(-50px)" : "translateY(50px)";
-              s2.style.pointerEvents = "none";
-            }
-          }
-
-          // Sección 3: Oráculo IA (rango 0.80 a 1.0)
-          if (s3) {
-            if (scrollFraction >= 0.80) {
-              const localProgress = Math.min((scrollFraction - 0.80) / 0.20, 1); // 0 a 1
-              let opacity = 0;
-              let translateY = 50;
-
-              if (localProgress <= 0.50) { // Entrada (0.80 a 0.90)
-                const inProgress = localProgress / 0.50;
-                opacity = inProgress;
-                translateY = 50 - inProgress * 50;
-              } else { // Estable hasta el final (0.90 a 1.0)
-                opacity = 1;
-                translateY = 0;
-              }
-
-              s3.style.opacity = opacity.toString();
-              s3.style.transform = `translateY(${translateY}px)`;
-              s3.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
-            } else {
-              s3.style.opacity = "0";
-              s3.style.transform = "translateY(50px)";
-              s3.style.pointerEvents = "none";
-            }
-          }
-
-          ticking = false;
-        });
-
-        ticking = true;
+      // Iniciar el bucle de animación bajo demanda si no está corriendo actualmente
+      if (animationFrameRef.current === null) {
+        animationFrameRef.current = requestAnimationFrame(updateInterpolatedElements);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Disparar inicialmente para posicionar los elementos
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
@@ -178,7 +197,7 @@ export default function Home() {
           src="/hero-scroll.mp4"
           muted
           playsInline
-          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05] transition-opacity duration-300"
+          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05]"
         />
         {/* Degradado y overlay oscuro */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80 z-1" />
