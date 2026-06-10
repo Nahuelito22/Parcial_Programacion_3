@@ -2,13 +2,13 @@
 
 Plataforma web orientada a la gestión y visualización de datos históricos y estadísticas del Mundial de Fútbol. Desarrollada bajo arquitectura MVC.
 
-## 🚀 Características Principales
+## Características Principales
 * **Autenticación:** Registro, login y logout con protección de rutas (Roles: Admin, User).
 * **Gestión de Estadísticas (CRUD):** Creación, lectura, actualización y eliminación de métricas deportivas.
 * **Dashboard Interactivo:** Visualización de datos y filtros avanzados.
 * **Predicción IA (Extra):** Endpoint predictivo basado en datos históricos (WIP).
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 **Frontend**
 * React.js (Uso de Hooks: useState, useEffect, useContext y custom hooks).
 * Tailwind CSS / shadcn/ui.
@@ -20,17 +20,17 @@ Plataforma web orientada a la gestión y visualización de datos históricos y e
 * JWT para autenticación de sesiones.
 * Arquitectura Orientada a Objetos (POO).
 
-## ⚙️ Instrucciones de Instalación
+## Instrucciones de Instalación
 *(Aquí agregaremos los comandos `npm install`, `pip install -r requirements.txt` y configuración del archivo `.env` más adelante)*
 
-## 📐 Diagrama UML
+## Diagrama UML
 *(Insertar imagen del diagrama UML de clases aquí)*
 *El diagrama refleja la aplicación de conceptos de Encapsulamiento, Herencia y Polimorfismo en el Backend.*
 
-## 👥 Integrantes
+## Integrantes
 * **Matías Nahuel Ghilardi Salinas** - Módulo: Estadísticas
 
-## 🌳 Estrategia de Ramas (Git / GitHub)
+## Estrategia de Ramas (Git / GitHub)
 
 Para mantener el orden, evitar conflictos y cumplir con las buenas prácticas de control de versiones, utilizaremos la siguiente estructura de ramas:
 
@@ -39,7 +39,7 @@ Para mantener el orden, evitar conflictos y cumplir con las buenas prácticas de
 * **`Nahuel_Develop` / `Gustavo_Develop`**: Ramas personales de cada desarrollador. Se utilizan para cambios estructurales de los módulos asignados, actualizaciones del `README.md`, configuración del `.gitignore`, etc.
 * **`feature/*`**: Ramas efímeras creadas a partir de la rama del desarrollador para trabajar en características específicas (ej: `feature/crud-estadisticas`).
 
-### Flujo de Trabajo (Diagrama)
+## Flujo de Trabajo (Diagrama)
 
 ```mermaid
 graph TD
