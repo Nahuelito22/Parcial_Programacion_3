@@ -13,7 +13,8 @@ import {
   Home, 
   Loader2, 
   AlertTriangle,
-  UserCheck
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface Edicion {
@@ -24,10 +25,11 @@ interface Edicion {
 }
 
 export default function Dashboard() {
-  const { user, token, logout } = useAuth();
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<"ediciones" | "equipos" | "jugadores" >("ediciones");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [ediciones, setEdiciones] = useState<Edicion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,66 +90,70 @@ export default function Dashboard() {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Sidebar Lateral */}
-      <aside className="w-full md:w-64 bg-slate-900/40 backdrop-blur-md border-b md:border-b-0 md:border-r border-white/5 p-6 flex flex-col justify-between z-10 shrink-0">
+      <aside className={`w-full ${isSidebarCollapsed ? "md:w-20" : "md:w-64"} bg-slate-900/40 backdrop-blur-md border-b md:border-b-0 md:border-r border-white/5 ${isSidebarCollapsed ? "p-4 md:px-3" : "p-6"} flex flex-col justify-between z-10 shrink-0 transition-all duration-300`}>
         <div className="space-y-8">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-yellow-500" />
-            <span className="font-extrabold text-lg tracking-wider bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">
-              MUNDIAL<span className="text-white font-medium text-xs ml-1 tracking-normal">Stats</span>
-            </span>
-          </div>
-
-          {/* Información del usuario */}
-          <div className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 shrink-0">
-              <UserCheck className="h-5 w-5" />
-            </div>
-            <div className="overflow-hidden">
-              <span className="block text-xs text-gray-500 font-medium">Conectado como</span>
-              <span className="block font-bold text-xs text-white truncate">{user?.username || user?.email.split("@")[0]}</span>
-              <span className="inline-block text-[9px] bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-bold px-1.5 py-0.5 rounded-md mt-1 uppercase tracking-widest">
-                {user?.role || "User"}
+          {/* Logo y Botón de Colapso */}
+          <div className={`flex items-center justify-between ${isSidebarCollapsed ? "flex-col gap-4" : ""}`}>
+            <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
+              <Trophy className="h-6 w-6 text-yellow-500 shrink-0" />
+              <span className={`font-extrabold text-lg tracking-wider bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent transition-all duration-300 ${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>
+                MUNDIAL<span className="text-white font-medium text-xs ml-1 tracking-normal">Stats</span>
               </span>
             </div>
+            
+            {/* Botón de Colapso */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer hidden md:block"
+              title={isSidebarCollapsed ? "Expandir menú" : "Colapsar menú"}
+            >
+              {isSidebarCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </button>
           </div>
 
           {/* Menú de Navegación */}
           <nav className="space-y-1">
             <button
               onClick={() => setActiveTab("ediciones")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              title="Ediciones"
+              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === "ediciones" 
                   ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
                   : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
-              <Trophy className="h-4 w-4" />
-              Ediciones
+              <Trophy className="h-4 w-4 shrink-0" />
+              <span className={`${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>Ediciones</span>
             </button>
 
             <button
               onClick={() => setActiveTab("equipos")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              title="Equipos"
+              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === "equipos" 
                   ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
                   : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
-              <Shield className="h-4 w-4" />
-              Equipos
+              <Shield className="h-4 w-4 shrink-0" />
+              <span className={`${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>Equipos</span>
             </button>
 
             <button
               onClick={() => setActiveTab("jugadores")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              title="Jugadores"
+              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === "jugadores" 
                   ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
                   : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
-              <UserIcon className="h-4 w-4" />
-              Jugadores
+              <UserIcon className="h-4 w-4 shrink-0" />
+              <span className={`${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>Jugadores</span>
             </button>
           </nav>
         </div>
@@ -156,23 +162,25 @@ export default function Dashboard() {
         <div className="pt-6 border-t border-white/5 space-y-2 mt-6 md:mt-0">
           <Link
             to="/"
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+            title="Volver al Inicio"
+            className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200`}
           >
-            <Home className="h-4 w-4" />
-            Volver al Inicio
+            <Home className="h-4 w-4 shrink-0" />
+            <span className={`${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>Volver al Inicio</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-all duration-200 cursor-pointer"
+            title="Cerrar Sesión"
+            className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-2.5 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-all duration-200 cursor-pointer`}
           >
-            <LogOut className="h-4 w-4" />
-            Cerrar Sesión
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className={`${isSidebarCollapsed ? "hidden md:hidden" : ""}`}>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
 
       {/* Área Principal */}
-      <main className="flex-1 p-6 md:p-10 z-10 overflow-y-auto max-w-full">
+      <main className="flex-1 p-6 pt-20 md:p-10 md:pt-24 z-10 overflow-y-auto max-w-full">
         {/* Encabezado Principal */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
