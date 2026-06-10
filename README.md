@@ -34,7 +34,8 @@ Plataforma web orientada a la gestión y visualización de datos históricos y e
 *El diagrama refleja la aplicación de conceptos de Encapsulamiento, Herencia y Polimorfismo en el Backend.*
 
 ## Integrantes
-* **Matías Nahuel Ghilardi Salinas** - Módulo: Estadísticas
+* **Nahuel Ghilardi** - Módulo: Estadísticas
+* **Gustavo Garcia** - Módulo: Estadísticas
 
 ## Estrategia de Ramas (Git / GitHub)
 
