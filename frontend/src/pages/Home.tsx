@@ -348,13 +348,13 @@ export default function Home() {
         {/* BLOQUE 1: KPIs y Título */}
         <div
           ref={section1Ref}
-          className="absolute max-w-4xl w-full text-center transition-all duration-75 ease-out opacity-0"
+          className="absolute max-w-5xl w-full text-center transition-all duration-75 ease-out opacity-0"
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-yellow-500 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 border border-yellow-500/10">
             <Trophy className="h-4 w-4" />
             La Gloria del Fútbol Mundial
           </div>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 leading-none px-4 sm:px-0">
+          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-6xl font-extrabold tracking-tight mb-4 sm:mb-6 leading-none px-4 sm:px-0">
             LA HISTORIA SE ESCRIBE EN <br className="hidden sm:block" />
             <span className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
               CADA SEGUNDO DE JUEGO
