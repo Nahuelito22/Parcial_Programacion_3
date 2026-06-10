@@ -58,3 +58,94 @@ class PlayerStatistic(Statistic):
             "asistencias": self.assists,
             "tarjetas_amarillas": self.yellow_cards
         }
+
+    @staticmethod
+    def get_all():
+        """
+        Retorna todas las estadísticas de jugadores.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_jugadores")
+                rows = cursor.fetchall()
+                return [PlayerStatistic.from_db_row(row) for row in rows]
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_id(stat_id: int):
+        """
+        Retorna una estadística de jugador por su ID.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_jugadores WHERE id = %s", (stat_id,))
+                row = cursor.fetchone()
+                return PlayerStatistic.from_db_row(row)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_by_edition(edition_id: int):
+        """
+        Retorna todas las estadísticas de jugadores para una edición específica.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM estadisticas_jugadores WHERE edicion_id = %s", (edition_id,))
+                rows = cursor.fetchall()
+                return [PlayerStatistic.from_db_row(row) for row in rows]
+        finally:
+            conn.close()
+
+    def save(self) -> int:
+        """
+        Inserta o actualiza la estadística del jugador en la base de datos.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                if self.id is None:
+                    cursor.execute(
+                        """
+                        INSERT INTO estadisticas_jugadores 
+                        (edicion_id, partidos_jugados, jugador_id, nombre_jugador, goles, asistencias, tarjetas_amarillas) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (self.edition_id, self.matches_played, self.player_id, self.player_name, self.goals, self.assists, self.yellow_cards)
+                    )
+                    self.id = cursor.lastrowid
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE estadisticas_jugadores 
+                        SET edicion_id = %s, partidos_jugados = %s, jugador_id = %s, nombre_jugador = %s, goles = %s, asistencias = %s, tarjetas_amarillas = %s 
+                        WHERE id = %s
+                        """,
+                        (self.edition_id, self.matches_played, self.player_id, self.player_name, self.goals, self.assists, self.yellow_cards, self.id)
+                    )
+            return self.id
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_by_id(stat_id: int) -> bool:
+        """
+        Elimina una estadística de jugador específica.
+        """
+        from app.database import Database
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM estadisticas_jugadores WHERE id = %s", (stat_id,))
+                return cursor.rowcount > 0
+        finally:
+            conn.close()
+
