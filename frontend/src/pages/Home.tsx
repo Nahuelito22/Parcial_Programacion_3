@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Trophy, BarChart3, Cpu, ChevronDown, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Home() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
@@ -14,20 +14,171 @@ export default function Home() {
   const currentFractionRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
 
+  // Estados para la carga de fotogramas
+  const [imagesLoaded, setImagesLoaded] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const TOTAL_FRAMES = 300;
+
+  // Precarga de imágenes
   useEffect(() => {
-    const video = videoRef.current;
+    let loadedCount = 0;
+    const tempImages: HTMLImageElement[] = [];
+
+    // Bloquear el scroll del body al inicio
+    document.body.style.overflow = "hidden";
+
+    const handleImageLoad = () => {
+      loadedCount++;
+      setImagesLoaded(loadedCount);
+      if (loadedCount >= TOTAL_FRAMES * 0.8) {
+        setIsLoaded(true);
+        document.body.style.overflow = "";
+      }
+    };
+
+    const handleImageError = () => {
+      // Si falla la carga de algún frame, lo contamos igual para evitar bloqueo
+      loadedCount++;
+      setImagesLoaded(loadedCount);
+      if (loadedCount >= TOTAL_FRAMES * 0.8) {
+        setIsLoaded(true);
+        document.body.style.overflow = "";
+      }
+    };
+
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      // Construir el path con padStart para ezgif-frame-001.jpg hasta ezgif-frame-300.jpg
+      img.src = `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
+      img.onload = handleImageLoad;
+      img.onerror = handleImageError;
+      tempImages.push(img);
+    }
+    imagesRef.current = tempImages;
+
+    return () => {
+      // Liberar scroll en desmontaje
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  // Función para dibujar un fotograma con efecto "cover"
+  const drawFrame = (fraction: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Rango 0.0 a 0.40 para la animación de la copa
+    if (fraction <= 0.40) {
+      const progress = fraction / 0.40;
+      // Mapeo matemático del progreso (0 a 1) al índice del array (0 a 299)
+      const imageIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES)));
+      const img = imagesRef.current[imageIndex];
+
+      if (img && img.complete) {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const imgWidth = img.naturalWidth || img.width;
+        const imgHeight = img.naturalHeight || img.height;
+
+        if (imgWidth > 0 && imgHeight > 0) {
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+          const imgRatio = imgWidth / imgHeight;
+          const canvasRatio = canvasWidth / canvasHeight;
+
+          let drawWidth = canvasWidth;
+          let drawHeight = canvasHeight;
+          let offsetX = 0;
+          let offsetY = 0;
+
+          if (canvasRatio > imgRatio) {
+            drawHeight = canvasWidth / imgRatio;
+            offsetY = (canvasHeight - drawHeight) / 2;
+          } else {
+            drawWidth = canvasHeight * imgRatio;
+            offsetX = (canvasWidth - drawWidth) / 2;
+          }
+
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        }
+      }
+      canvas.style.opacity = "1";
+    } else {
+      // Mantener el último fotograma al pasarse de la sección del video
+      const img = imagesRef.current[TOTAL_FRAMES - 1];
+      if (img && img.complete) {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const imgWidth = img.naturalWidth || img.width;
+        const imgHeight = img.naturalHeight || img.height;
+
+        if (imgWidth > 0 && imgHeight > 0) {
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+          const imgRatio = imgWidth / imgHeight;
+          const canvasRatio = canvasWidth / canvasHeight;
+
+          let drawWidth = canvasWidth;
+          let drawHeight = canvasHeight;
+          let offsetX = 0;
+          let offsetY = 0;
+
+          if (canvasRatio > imgRatio) {
+            drawHeight = canvasWidth / imgRatio;
+            offsetY = (canvasHeight - drawHeight) / 2;
+          } else {
+            drawWidth = canvasHeight * imgRatio;
+            offsetX = (canvasWidth - drawWidth) / 2;
+          }
+
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        }
+      }
+
+      // Transición de desvanecimiento suave del canvas (0.40 a 0.45)
+      if (fraction <= 0.45) {
+        const fadeProgress = (fraction - 0.40) / 0.05;
+        canvas.style.opacity = (1 - fadeProgress).toString();
+      } else {
+        canvas.style.opacity = "0";
+      }
+    }
+  };
+
+  // Manejo de redimensionamiento responsivo
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        drawFrame(currentFractionRef.current);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isLoaded]);
+
+  // Manejo de scroll e interpolación lineal (Lerp)
+  useEffect(() => {
+    if (!isLoaded) return;
 
     const updateInterpolatedElements = () => {
-      const v = videoRef.current;
       const s1 = section1Ref.current;
       const s2 = section2Ref.current;
       const s3 = section3Ref.current;
       const indicator = scrollIndicatorRef.current;
 
-      if (!v) return;
-
       const diff = targetFractionRef.current - currentFractionRef.current;
-
+      
       if (Math.abs(diff) > 0.0002) {
         currentFractionRef.current += diff * 0.08;
         animationFrameRef.current = requestAnimationFrame(updateInterpolatedElements);
@@ -38,37 +189,17 @@ export default function Home() {
 
       const fraction = currentFractionRef.current;
 
-      if (fraction <= 0.40) {
-        const videoProgress = fraction / 0.40;
-        try {
-          const duration = v.duration && isFinite(v.duration) ? v.duration : 10;
-          if (v.readyState >= 2) {
-            v.currentTime = Math.max(0, Math.min(duration - 0.05, videoProgress * duration));
-          }
-        } catch (e) { /* ignore */ }
-        v.style.opacity = "1";
-      } else {
-        try {
-          const duration = v.duration && isFinite(v.duration) ? v.duration : 10;
-          if (v.readyState >= 2) {
-            v.currentTime = duration - 0.05;
-          }
-        } catch (e) { /* ignore */ }
+      // Dibujar fotograma
+      drawFrame(fraction);
 
-        if (fraction <= 0.45) {
-          const fadeProgress = (fraction - 0.40) / 0.05;
-          v.style.opacity = (1 - fadeProgress).toString();
-        } else {
-          v.style.opacity = "0";
-        }
-      }
-
+      // Desvanecer indicador inicial
       if (indicator) {
         const indOpacity = Math.max(0, 1 - fraction * 8);
         indicator.style.opacity = indOpacity.toString();
         indicator.style.transform = `translate(-50%, ${fraction * -35}px)`;
       }
 
+      // Animaciones de secciones
       if (s1) {
         if (fraction >= 0.40 && fraction < 0.60) {
           const localProgress = (fraction - 0.40) / 0.20;
@@ -90,9 +221,11 @@ export default function Home() {
 
           s1.style.opacity = opacity.toString();
           s1.style.transform = `translateY(${translateY}px)`;
+          s1.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
         } else {
           s1.style.opacity = "0";
           s1.style.transform = fraction >= 0.60 ? "translateY(-50px)" : "translateY(50px)";
+          s1.style.pointerEvents = "none";
         }
       }
 
@@ -117,9 +250,11 @@ export default function Home() {
 
           s2.style.opacity = opacity.toString();
           s2.style.transform = `translateY(${translateY}px)`;
+          s2.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
         } else {
           s2.style.opacity = "0";
           s2.style.transform = fraction >= 0.80 ? "translateY(-50px)" : "translateY(50px)";
+          s2.style.pointerEvents = "none";
         }
       }
 
@@ -140,9 +275,11 @@ export default function Home() {
 
           s3.style.opacity = opacity.toString();
           s3.style.transform = `translateY(${translateY}px)`;
+          s3.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
         } else {
           s3.style.opacity = "0";
           s3.style.transform = "translateY(50px)";
+          s3.style.pointerEvents = "none";
         }
       }
     };
@@ -159,45 +296,52 @@ export default function Home() {
       }
     };
 
-    const onVideoLoaded = () => {
-      handleScroll();
-    };
-
-    if (video) {
-      video.load();
-      video.addEventListener("loadeddata", onVideoLoaded);
-    }
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (video) {
-        video.removeEventListener("loadeddata", onVideoLoaded);
-      }
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, []);
+  }, [isLoaded]);
+
+  // Si no está cargado el mínimo del 80%, renderizar la pantalla de carga premium
+  if (!isLoaded) {
+    const progressPercent = Math.round((imagesLoaded / TOTAL_FRAMES) * 100);
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50 text-white select-none">
+        <div className="flex flex-col items-center max-w-xs w-full px-4">
+          <Trophy className="h-12 w-12 text-yellow-500 animate-pulse mb-6" />
+          <h2 className="text-lg font-bold tracking-widest text-gray-200 uppercase mb-2">Preparando Experiencia</h2>
+          <span className="text-xs text-yellow-500 font-mono mb-4">{progressPercent}%</span>
+          
+          {/* Barra de progreso */}
+          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10">
+            <div 
+              className="bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 h-full transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-[500vh] bg-black text-white select-none">
       
-      {/* Contenedor de Video de Fondo Fijo */}
-      <div className="fixed inset-0 w-full h-full z-[-1] overflow-hidden pointer-events-none">
-        <video
-          ref={videoRef}
-          src="/hero-scroll.mp4"
-          muted
-          playsInline
-          preload="auto"
-          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05]"
+      {/* Contenedor de Canvas de Fondo Fijo */}
+      <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full object-cover filter brightness-[0.4] contrast-[1.05] transition-opacity duration-75"
         />
+        {/* Degradado y overlay oscuro */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80 z-[1]" />
-        <div
-          className="absolute inset-0 opacity-[0.03] z-[2]"
+        <div 
+          className="absolute inset-0 opacity-[0.03] z-[2]" 
           style={{
             backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
             backgroundSize: "24px 24px"
