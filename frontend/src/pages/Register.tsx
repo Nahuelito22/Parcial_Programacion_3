@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 const countriesData = {
   Argentina: {
     name: "Argentina",
-    imageUrl: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?q=80&w=1200&auto=format&fit=crop",
+    imageUrl: "/assets/register/bg-argentina.webp",
     stats: [
       { label: "Títulos Mundiales", value: "3" },
       { label: "Goles Totales", value: "152" },
@@ -15,7 +15,7 @@ const countriesData = {
   },
   Francia: {
     name: "Francia",
-    imageUrl: "https://images.unsplash.com/photo-1508849789987-4e5333c12b78?q=80&w=1200&auto=format&fit=crop",
+    imageUrl: "/assets/register/bg-francia.webp",
     stats: [
       { label: "Títulos Mundiales", value: "2" },
       { label: "Goles Totales", value: "136" },
@@ -24,7 +24,7 @@ const countriesData = {
   },
   Brasil: {
     name: "Brasil",
-    imageUrl: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?q=80&w=1200&auto=format&fit=crop",
+    imageUrl: "/assets/register/bg-brasil.webp",
     stats: [
       { label: "Títulos Mundiales", value: "5" },
       { label: "Goles Totales", value: "237" },
@@ -33,7 +33,7 @@ const countriesData = {
   },
   Alemania: {
     name: "Alemania",
-    imageUrl: "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop",
+    imageUrl: "/assets/register/bg-alemania.webp",
     stats: [
       { label: "Títulos Mundiales", value: "4" },
       { label: "Goles Totales", value: "232" },
