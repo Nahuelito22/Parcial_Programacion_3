@@ -193,3 +193,12 @@ DESIGN.md
 
 # Documentación y reportes de auditoría (excluidos del repo)
 docs/
+
+# ================================
+# Python Backend
+# ================================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
