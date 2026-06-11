@@ -102,7 +102,7 @@ export default function Register() {
       >
         {/* Overlay con degradado premium */}
         {/* AJUSTAR ESTOS VALORES PARA CAMBIAR LA ALTURA DEL DEGRADADO */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19] to-transparent from-10% via-40% transition-all duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19] to-transparent from-0% via-15% transition-all duration-500" />
 
         {/* Contenido Dinámico del País (Abajo sobre degradado) */}
         <div className="relative z-10 space-y-6">
@@ -129,7 +129,7 @@ export default function Register() {
       </div>
 
       {/* Panel Derecho: Formulario */}
-      <div className="w-full md:w-1/2 h-full bg-[#0b0f19] flex items-center justify-center p-6 sm:p-12 relative z-10 overflow-y-auto">
+      <div className="w-full md:w-1/2 h-full bg-[#0b0f19] flex items-center justify-center p-4 sm:p-8 relative z-10 overflow-y-auto">
         {/* Luces de fondo decorativas */}
         <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -147,9 +147,9 @@ export default function Register() {
             </Link>
           </div>
 
-          <div className="mb-6 text-center md:text-left">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white font-title">Crea tu cuenta gratis</h2>
-            <p className="text-sm text-gray-400 mt-1">Únete para explorar estadísticas y acceder a predicciones IA</p>
+          <div className="mb-3 text-center md:text-left">
+            <h2 className="text-2xl font-extrabold tracking-tight text-white font-title">Crea tu cuenta gratis</h2>
+            <p className="text-xs text-gray-400 mt-1">Únete para explorar estadísticas y acceder a predicciones IA</p>
           </div>
 
           {/* Alertas */}
@@ -168,7 +168,7 @@ export default function Register() {
           )}
 
           {/* Formulario */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Nombre de usuario */}
             <div>
               <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
@@ -185,7 +185,7 @@ export default function Register() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="juan_perez"
                   disabled={submitting || !!successMsg}
-                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
+                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function Register() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ejemplo@correo.com"
                   disabled={submitting || !!successMsg}
-                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
+                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function Register() {
                   value={selectedCountry}
                   onChange={(e) => setSelectedCountry(e.target.value as CountryKey)}
                   disabled={submitting || !!successMsg}
-                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50 cursor-pointer appearance-none"
+                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50 cursor-pointer appearance-none"
                 >
                   {Object.keys(countriesData).map((country) => (
                     <option key={country} value={country} className="bg-slate-900 text-white">
@@ -254,7 +254,7 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
                   disabled={submitting || !!successMsg}
-                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
+                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2 pl-10 pr-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -283,7 +283,7 @@ export default function Register() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repite tu contraseña"
                   disabled={submitting || !!successMsg}
-                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
+                  className="w-full bg-[#1a2030] border border-transparent rounded-xl py-2 pl-10 pr-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e5b842] focus:ring-1 focus:ring-[#e5b842] transition-all duration-200 disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -300,7 +300,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={submitting || !!successMsg}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold bg-[#e5b842] text-black hover:bg-[#cca232] shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-6 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold bg-[#e5b842] text-black hover:bg-[#cca232] shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 mt-4 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <UserPlus className="h-4 w-4" />
               {submitting ? "Creando cuenta..." : "Crear Cuenta"}
@@ -308,7 +308,7 @@ export default function Register() {
           </form>
 
           {/* Footer de Tarjeta */}
-          <div className="mt-6 pt-4 text-center">
+          <div className="mt-3 pt-2 text-center">
             <p className="text-xs text-gray-400">
               ¿Ya tienes cuenta?{" "}
               <Link to="/login" className="inline-flex items-center gap-0.5 text-[#e5b842] font-semibold hover:text-[#cca232] hover:underline">
