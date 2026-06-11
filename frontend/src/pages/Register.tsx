@@ -95,20 +95,14 @@ export default function Register() {
     <div className="h-screen overflow-hidden flex pt-16 bg-slate-950 text-white relative select-none">
       
       {/* Panel Izquierdo: Visual Dinámico */}
+      {/* AJUSTAR ESTE PADDING (pb-X) PARA BAJAR O SUBIR LAS CARDS */}
       <div 
-        className="hidden md:flex md:w-1/2 flex-col justify-end p-12 pb-16 relative bg-cover bg-center transition-all duration-500 ease-in-out overflow-hidden"
+        className="hidden md:flex md:w-1/2 flex-col justify-end p-12 pb-4 relative bg-cover bg-center transition-all duration-500 ease-in-out overflow-hidden"
         style={{ backgroundImage: `url(${countriesData[selectedCountry].imageUrl})` }}
       >
         {/* Overlay con degradado premium */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19]/80 to-transparent transition-all duration-500" />
-
-        {/* Encabezado del logo absolute */}
-        <div className="absolute top-12 left-12 z-10 flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-yellow-500" />
-          <span className="font-extrabold text-lg tracking-wider bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-            MUNDIAL<span className="text-white font-medium text-xs ml-1 tracking-normal">Data</span>
-          </span>
-        </div>
+        {/* AJUSTAR ESTOS VALORES PARA CAMBIAR LA ALTURA DEL DEGRADADO */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19] to-transparent from-10% via-40% transition-all duration-500" />
 
         {/* Contenido Dinámico del País (Abajo sobre degradado) */}
         <div className="relative z-10 space-y-6">
@@ -131,11 +125,6 @@ export default function Register() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Footer del panel izquierdo */}
-        <div className="relative z-10 text-xs text-gray-500 font-light mt-8">
-          © {new Date().getFullYear()} MundialData. Todos los derechos reservados.
         </div>
       </div>
 
