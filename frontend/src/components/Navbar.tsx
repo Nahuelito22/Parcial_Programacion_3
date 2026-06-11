@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, LogIn, UserPlus, Home as HomeIcon, BarChart2, LayoutDashboard, LogOut } from "lucide-react";
+import { Trophy, LogIn, UserPlus, LayoutDashboard, LogOut } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Navbar() {
@@ -47,28 +47,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 ${
-                isActive("/") 
-                  ? "text-yellow-500" 
-                  : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <HomeIcon className="h-4 w-4" />
-              Inicio
-            </Link>
-            <Link
-              to="/login"
-              className="flex items-center gap-1.5 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
-            >
-              <BarChart2 className="h-4 w-4" />
-              Estadísticas
-            </Link>
-            <span className="h-4 w-px bg-gray-700"></span>
-          </div>
+
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-4">
