@@ -188,7 +188,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Área Principal */}
-      <main className="flex-1 p-6 pt-20 md:p-10 md:pt-24 z-10 overflow-y-auto max-w-full">
+      <main className="flex-1 min-w-0 px-6 pt-24 pb-6 md:px-10 md:pb-10 z-10 overflow-y-auto max-w-full">
         {/* Encabezado Principal */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
