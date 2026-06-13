@@ -204,4 +204,4 @@ venv/
 env/
 
 # Excluir dataset
-backend\data\raw_fjelstul
+backend/data/raw_fjelstul
