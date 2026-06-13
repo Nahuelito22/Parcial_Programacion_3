@@ -11,7 +11,8 @@ import {
   Loader2, 
   AlertTriangle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Database
 } from "lucide-react";
 
 interface Edicion {
@@ -24,7 +25,7 @@ interface Edicion {
 export default function Dashboard() {
   const { token } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<"ediciones" | "equipos" | "jugadores" >("ediciones");
+  const [activeTab, setActiveTab] = useState<"ediciones" | "equipos" | "jugadores" | "ingesta">("ediciones");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [ediciones, setEdiciones] = useState<Edicion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -93,45 +94,78 @@ export default function Dashboard() {
           </div>
 
           {/* Menú de Navegación */}
-          <nav className="space-y-1">
-            <button
-              onClick={() => setActiveTab("ediciones")}
-              title="Ediciones"
-              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === "ediciones" 
-                  ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-              }`}
-            >
-              <Trophy className="h-4 w-4 shrink-0" />
-              <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
-            </button>
+          <nav className="space-y-4">
+            <div>
+              {!isSidebarCollapsed && (
+                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                  GESTIÓN MANUAL
+                </div>
+              )}
+              <div className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("ediciones")}
+                  title="Ediciones"
+                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    activeTab === "ediciones" 
+                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <Trophy className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
+                </button>
 
-            <button
-              onClick={() => setActiveTab("equipos")}
-              title="Equipos"
-              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === "equipos" 
-                  ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-              }`}
-            >
-              <Shield className="h-4 w-4 shrink-0" />
-              <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
-            </button>
+                <button
+                  onClick={() => setActiveTab("equipos")}
+                  title="Equipos"
+                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    activeTab === "equipos" 
+                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <Shield className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
+                </button>
 
-            <button
-              onClick={() => setActiveTab("jugadores")}
-              title="Jugadores"
-              className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === "jugadores" 
-                  ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-              }`}
-            >
-              <UserIcon className="h-4 w-4 shrink-0" />
-              <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
-            </button>
+                <button
+                  onClick={() => setActiveTab("jugadores")}
+                  title="Jugadores"
+                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    activeTab === "jugadores" 
+                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <UserIcon className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
+                </button>
+              </div>
+            </div>
+
+            <hr className="border-white/5 my-4" />
+
+            <div>
+              {!isSidebarCollapsed && (
+                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                  INGESTA DE DATOS
+                </div>
+              )}
+              <div className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("ingesta")}
+                  title="Panel de Control"
+                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    activeTab === "ingesta" 
+                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <Database className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Panel de Control</span>
+                </button>
+              </div>
+            </div>
           </nav>
         </div>
 
