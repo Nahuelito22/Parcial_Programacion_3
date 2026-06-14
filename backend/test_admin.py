@@ -108,7 +108,7 @@ class AdminTestSuite(unittest.TestCase):
         response = self.client.post("/api/admin/import-csv", headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data["message"], "import-csv endpoint activo")
+        self.assertIn("importado correctamente", data["message"])
 
     def test_sync_api_admin(self):
         token = self._generate_token(self.admin_user)
