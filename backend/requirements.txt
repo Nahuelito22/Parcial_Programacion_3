@@ -6,4 +6,7 @@ PyJWT
 bcrypt
 pandas
 requests
-
+numpy
+scipy
+scikit-learn
+joblib

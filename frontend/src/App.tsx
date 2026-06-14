@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import HeadToHeadPage from "./pages/HeadToHeadPage";
 import RankingsPage from "./pages/RankingsPage";
+import OraclePage from "./pages/OraclePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -53,11 +54,20 @@ export default function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/dashboard/oracle" 
+              element={
+                <ProtectedRoute>
+                  <OraclePage />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
 
 

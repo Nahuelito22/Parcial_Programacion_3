@@ -15,7 +15,8 @@ import {
   Swords,
   TrendingUp,
   Sparkles,
-  Award
+  Award,
+  Brain
 } from "lucide-react";
 
 interface Edition {
@@ -176,6 +177,15 @@ export default function RankingsPage() {
                 >
                   <TrendingUp className="h-4 w-4 shrink-0" />
                   <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Rankings</span>
+                </button>
+
+                <button
+                  onClick={() => navigate("/dashboard/oracle")}
+                  title="Oráculo IA"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                >
+                  <Brain className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Oráculo IA</span>
                 </button>
               </div>
             </div>
