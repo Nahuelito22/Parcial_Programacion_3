@@ -1,5 +1,3 @@
-import React from "react";
-
 interface ComparisonBarProps {
   label: string;
   valueA: number;

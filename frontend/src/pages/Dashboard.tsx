@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import axios from "axios";
 import DataManagementPanel from "../components/DataManagementPanel";
@@ -13,7 +14,8 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Database
+  Database,
+  Swords
 } from "lucide-react";
 
 interface Edicion {
@@ -25,8 +27,16 @@ interface Edicion {
 
 export default function Dashboard() {
   const { token } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<"ediciones" | "equipos" | "jugadores" | "ingesta">("ediciones");
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [ediciones, setEdiciones] = useState<Edicion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -140,6 +150,26 @@ export default function Dashboard() {
                 >
                   <UserIcon className="h-4 w-4 shrink-0" />
                   <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
+                </button>
+              </div>
+            </div>
+
+            <hr className="border-white/5 my-4" />
+
+            <div>
+              {!isSidebarCollapsed && (
+                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                  ANÁLISIS
+                </div>
+              )}
+              <div className="space-y-1">
+                <button
+                  onClick={() => navigate("/dashboard/h2h")}
+                  title="Head-to-Head"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                >
+                  <Swords className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Head-to-Head</span>
                 </button>
               </div>
             </div>
