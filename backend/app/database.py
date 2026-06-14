@@ -20,6 +20,11 @@ class Database:
         password = os.getenv("MYSQL_PASSWORD", "")
         database = os.getenv("MYSQL_DATABASE", "mundial_db")
 
+        # Configurar SSL para requerir conexiones cifradas en la nube (como en Aiven)
+        # Se puede desactivar localmente con MYSQL_SSL=false en el .env
+        ssl_env = os.getenv("MYSQL_SSL", "true").lower()
+        ssl_config = {} if ssl_env != "false" else None
+
         return pymysql.connect(
             host=host,
             port=port,
@@ -27,5 +32,6 @@ class Database:
             password=password,
             database=database,
             cursorclass=DictCursor,
-            autocommit=autocommit
+            autocommit=autocommit,
+            ssl=ssl_config
         )
