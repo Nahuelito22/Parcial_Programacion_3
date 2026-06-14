@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { useHeadToHead } from "../hooks/useHeadToHead";
 import type { H2HEdition } from "../hooks/useHeadToHead";
 import SearchSelect from "../components/ui/SearchSelect";
@@ -23,8 +24,10 @@ import {
 
 export default function HeadToHeadPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [timeframe, setTimeframe] = useState<"global" | "edition">("global");
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
 
   const {
     type,
@@ -110,41 +113,43 @@ export default function HeadToHeadPage() {
 
           {/* Menú de Navegación */}
           <nav className="space-y-4">
-            <div>
-              {!isSidebarCollapsed && (
-                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
-                  GESTIÓN MANUAL
+            {isAdmin && (
+              <div>
+                {!isSidebarCollapsed && (
+                  <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                    GESTIÓN MANUAL
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <button
+                    onClick={() => navigateToDashboard("ediciones")}
+                    title="Ediciones"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  >
+                    <Trophy className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigateToDashboard("equipos")}
+                    title="Equipos"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  >
+                    <Shield className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigateToDashboard("jugadores")}
+                    title="Jugadores"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  >
+                    <UserIcon className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
+                  </button>
                 </div>
-              )}
-              <div className="space-y-1">
-                <button
-                  onClick={() => navigateToDashboard("ediciones")}
-                  title="Ediciones"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                >
-                  <Trophy className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
-                </button>
-
-                <button
-                  onClick={() => navigateToDashboard("equipos")}
-                  title="Equipos"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                >
-                  <Shield className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
-                </button>
-
-                <button
-                  onClick={() => navigateToDashboard("jugadores")}
-                  title="Jugadores"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                >
-                  <UserIcon className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
-                </button>
               </div>
-            </div>
+            )}
 
             <hr className="border-white/5 my-4" />
 
@@ -162,28 +167,40 @@ export default function HeadToHeadPage() {
                   <Swords className="h-4 w-4 shrink-0" />
                   <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Head-to-Head</span>
                 </button>
-              </div>
-            </div>
 
-            <hr className="border-white/5 my-4" />
-
-            <div>
-              {!isSidebarCollapsed && (
-                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
-                  INGESTA DE DATOS
-                </div>
-              )}
-              <div className="space-y-1">
                 <button
-                  onClick={() => navigateToDashboard("ingesta")}
-                  title="Panel de Control"
+                  onClick={() => navigate("/dashboard/rankings")}
+                  title="Rankings"
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
                 >
-                  <Database className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Panel de Control</span>
+                  <TrendingUp className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Rankings</span>
                 </button>
               </div>
             </div>
+
+            {isAdmin && (
+              <>
+                <hr className="border-white/5 my-4" />
+                <div>
+                  {!isSidebarCollapsed && (
+                    <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                      INGESTA DE DATOS
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => navigateToDashboard("ingesta")}
+                      title="Panel de Control"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    >
+                      <Database className="h-4 w-4 shrink-0" />
+                      <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Panel de Control</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </nav>
         </div>
 
