@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import axios from "axios";
+import { API_BASE_URL } from "../utils/api";
 import RankingFilterBar from "../components/ui/RankingFilterBar";
 import RankingTable, { type RankingColumn } from "../components/ui/RankingTable";
 import { 
@@ -33,8 +34,6 @@ export default function RankingsPage() {
   const [activeTab, setActiveTab] = useState<"goleadores" | "participaciones" | "ataque">("goleadores");
   const [editionId, setEditionId] = useState<number | null>(null);
   const [limit, setLimit] = useState<number>(10);
-
-  const API_BASE_URL = "http://127.0.0.1:5000/api";
 
   // 1. Obtener la lista de ediciones para los filtros
   const editionsQuery = useQuery({

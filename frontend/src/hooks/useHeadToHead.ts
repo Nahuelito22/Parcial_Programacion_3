@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+import { API_BASE_URL } from "../utils/api";
 
 export interface H2HOption {
   id: number;

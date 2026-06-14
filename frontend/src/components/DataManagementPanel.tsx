@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../utils/api";
 import { 
   FileSpreadsheet, 
   RefreshCw, 
@@ -29,7 +30,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
     setImportStatus("loading");
     setImportMessage("");
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/admin/import-csv", {
+      const response = await fetch(`${API_BASE_URL}/admin/import-csv`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +55,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
     setSyncStatus("loading");
     setSyncMessage("");
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/admin/sync-api", {
+      const response = await fetch(`${API_BASE_URL}/admin/sync-api`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +85,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
     setClearStatus("loading");
     setClearMessage("");
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/admin/clear-db", {
+      const response = await fetch(`${API_BASE_URL}/admin/clear-db`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
