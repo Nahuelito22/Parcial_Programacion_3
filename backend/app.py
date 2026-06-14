@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from app.routes.auth_routes import auth_bp
 from app.routes.estadisticas_routes import estadisticas_bp
+from app.routes.admin_routes import admin_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -9,6 +10,7 @@ CORS(app)
 # Registrar Blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(estadisticas_bp, url_prefix='/api')
+app.register_blueprint(admin_bp)
 
 @app.route('/')
 def index():
