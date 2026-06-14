@@ -223,7 +223,7 @@ export default function HeadToHeadPage() {
         </div>
 
         {/* Controladores y Selectores */}
-        <div className="glassmorphism rounded-2xl border border-white/5 p-6 space-y-6 mb-8 relative">
+        <div className="glassmorphism rounded-2xl border border-white/5 p-6 space-y-6 mb-8 relative z-30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Tabs de tipo: Selecciones vs Jugadores */}
             <div className="flex bg-slate-950 p-1 rounded-xl border border-white/5 self-start">
