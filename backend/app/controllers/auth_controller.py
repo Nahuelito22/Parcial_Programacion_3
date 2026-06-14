@@ -59,6 +59,9 @@ def register_user():
         }), 201
         
     except Exception as e:
+        print(f"ERROR FATAL EN REGISTRO: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"message": "Ocurrió un error en el servidor.", "error": str(e)}), 500
 
 def login_user():
@@ -110,6 +113,9 @@ def login_user():
         }), 200
         
     except Exception as e:
+        print(f"ERROR FATAL EN LOGIN: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"message": "Ocurrió un error en el servidor.", "error": str(e)}), 500
 
 def get_current_user_profile():
