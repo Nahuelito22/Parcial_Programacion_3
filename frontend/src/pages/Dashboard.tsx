@@ -40,6 +40,14 @@ export default function Dashboard() {
       setActiveTab(location.state.activeTab);
     }
   }, [location.state]);
+
+  // Redirigir a usuarios no administradores a la sección de análisis
+  useEffect(() => {
+    if (user && user.role?.toUpperCase() !== "ADMIN") {
+      navigate("/dashboard/h2h", { replace: true });
+    }
+  }, [user, navigate]);
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [ediciones, setEdiciones] = useState<Edicion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -97,65 +105,60 @@ export default function Dashboard() {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Sidebar Lateral */}
-      <aside className={`h-screen sticky top-0 ${isSidebarCollapsed ? "w-20" : "w-64"} bg-slate-900/40 backdrop-blur-md border-r border-white/5 ${isSidebarCollapsed ? "p-4 md:px-3" : "p-6"} flex flex-col justify-between z-10 shrink-0 transition-all duration-300`}>
+      <aside className={`h-[calc(100vh-4rem)] sticky top-16 ${isSidebarCollapsed ? "w-20" : "w-64"} bg-slate-900/40 backdrop-blur-md border-r border-white/5 ${isSidebarCollapsed ? "p-4 md:px-3" : "p-6"} flex flex-col justify-between z-10 shrink-0 transition-all duration-300`}>
         <div className="space-y-8">
-          {/* Logo */}
-          <div className={`flex items-center ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}>
-            <Trophy className="h-6 w-6 text-yellow-500 shrink-0" />
-            <span className={`font-extrabold text-lg tracking-wider bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent transition-all duration-300 ${isSidebarCollapsed ? "hidden" : ""}`}>
-              MUNDIAL<span className="text-white font-medium text-xs ml-1 tracking-normal">Data</span>
-            </span>
-          </div>
 
           {/* Menú de Navegación */}
           <nav className="space-y-4">
-            <div>
-              {!isSidebarCollapsed && (
-                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
-                  GESTIÓN MANUAL
+            {user?.role?.toUpperCase() === "ADMIN" && (
+              <div>
+                {!isSidebarCollapsed && (
+                  <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                    GESTIÓN MANUAL
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setActiveTab("ediciones")}
+                    title="Ediciones"
+                    className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      activeTab === "ediciones" 
+                        ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                        : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <Trophy className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("equipos")}
+                    title="Equipos"
+                    className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      activeTab === "equipos" 
+                        ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                        : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <Shield className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("jugadores")}
+                    title="Jugadores"
+                    className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      activeTab === "jugadores" 
+                        ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                        : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <UserIcon className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
+                  </button>
                 </div>
-              )}
-              <div className="space-y-1">
-                <button
-                  onClick={() => setActiveTab("ediciones")}
-                  title="Ediciones"
-                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "ediciones" 
-                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                >
-                  <Trophy className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Ediciones</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("equipos")}
-                  title="Equipos"
-                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "equipos" 
-                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                >
-                  <Shield className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Equipos</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("jugadores")}
-                  title="Jugadores"
-                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "jugadores" 
-                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                >
-                  <UserIcon className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Jugadores</span>
-                </button>
               </div>
-            </div>
+            )}
 
             <hr className="border-white/5 my-4" />
 

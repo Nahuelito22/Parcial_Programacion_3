@@ -99,18 +99,8 @@ export default function RankingsPage() {
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Sidebar Lateral */}
-      <aside className={`h-screen sticky top-0 ${isSidebarCollapsed ? "w-20" : "w-64"} bg-slate-900/40 backdrop-blur-md border-r border-white/5 ${isSidebarCollapsed ? "p-4 md:px-3" : "p-6"} flex flex-col justify-between z-10 shrink-0 transition-all duration-300`}>
+      <aside className={`h-[calc(100vh-4rem)] sticky top-16 ${isSidebarCollapsed ? "w-20" : "w-64"} bg-slate-900/40 backdrop-blur-md border-r border-white/5 ${isSidebarCollapsed ? "p-4 md:px-3" : "p-6"} flex flex-col justify-between z-10 shrink-0 transition-all duration-300`}>
         <div className="space-y-8">
-          {/* Logo */}
-          <div 
-            onClick={() => navigate("/")}
-            className={`flex items-center cursor-pointer ${isSidebarCollapsed ? "justify-center" : "gap-2"}`}
-          >
-            <Trophy className="h-6 w-6 text-yellow-500 shrink-0" />
-            <span className={`font-extrabold text-lg tracking-wider bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent transition-all duration-300 ${isSidebarCollapsed ? "hidden" : ""}`}>
-              MUNDIAL<span className="text-white font-medium text-xs ml-1 tracking-normal">Data</span>
-            </span>
-          </div>
 
           {/* Menú de Navegación */}
           <nav className="space-y-4">
