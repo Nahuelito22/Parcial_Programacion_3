@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import axios from "axios";
+import { API_BASE_URL } from "../utils/api";
 import DataManagementPanel from "../components/DataManagementPanel";
 import { 
   Trophy, 
@@ -52,7 +53,7 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get("http://127.0.0.1:5000/api/ediciones", {
+        const response = await axios.get(`${API_BASE_URL}/ediciones`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
