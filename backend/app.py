@@ -3,6 +3,7 @@ from flask_cors import CORS
 from app.routes.auth_routes import auth_bp
 from app.routes.estadisticas_routes import estadisticas_bp
 from app.routes.admin_routes import admin_bp
+from app.routes.h2h_routes import h2h_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -11,6 +12,8 @@ CORS(app)
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(estadisticas_bp, url_prefix='/api')
 app.register_blueprint(admin_bp)
+app.register_blueprint(h2h_bp, url_prefix='/api/h2h')
+
 
 @app.route('/')
 def index():
