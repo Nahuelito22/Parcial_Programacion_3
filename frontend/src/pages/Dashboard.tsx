@@ -26,7 +26,7 @@ interface Edicion {
 }
 
 export default function Dashboard() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -176,27 +176,29 @@ export default function Dashboard() {
 
             <hr className="border-white/5 my-4" />
 
-            <div>
-              {!isSidebarCollapsed && (
-                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
-                  INGESTA DE DATOS
+            {user?.role?.toUpperCase() === "ADMIN" && (
+              <div>
+                {!isSidebarCollapsed && (
+                  <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold px-4 mb-2">
+                    INGESTA DE DATOS
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setActiveTab("ingesta")}
+                    title="Panel de Control"
+                    className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                      activeTab === "ingesta" 
+                        ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
+                        : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <Database className="h-4 w-4 shrink-0" />
+                    <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Panel de Control</span>
+                  </button>
                 </div>
-              )}
-              <div className="space-y-1">
-                <button
-                  onClick={() => setActiveTab("ingesta")}
-                  title="Panel de Control"
-                  className={`w-full flex items-center ${isSidebarCollapsed ? "justify-center px-2" : "gap-3 px-4"} py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "ingesta" 
-                      ? "bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 text-yellow-500"
-                      : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                >
-                  <Database className="h-4 w-4 shrink-0" />
-                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Panel de Control</span>
-                </button>
               </div>
-            </div>
+            )}
           </nav>
         </div>
 
@@ -231,7 +233,7 @@ export default function Dashboard() {
                 : `Administración de ${activeTab} registradas en el sistema.`}
             </p>
           </div>
-          {activeTab !== "ingesta" && (
+          {user?.role?.toUpperCase() === "ADMIN" && activeTab !== "ingesta" && (
             <button
               className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/25 transition-all duration-200 cursor-pointer"
             >
@@ -242,7 +244,7 @@ export default function Dashboard() {
         </div>
 
         {/* Tablas CRUD / Panel de Gestión */}
-        {activeTab === "ingesta" ? (
+        {activeTab === "ingesta" && user?.role?.toUpperCase() === "ADMIN" ? (
           <DataManagementPanel token={token} />
         ) : (
           <div className="glassmorphism rounded-2xl border border-white/5 overflow-hidden">
@@ -274,7 +276,9 @@ export default function Dashboard() {
                           <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Año</th>
                           <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Organizador</th>
                           <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Campeón</th>
-                          <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                          {user?.role?.toUpperCase() === "ADMIN" && (
+                            <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -284,16 +288,18 @@ export default function Dashboard() {
                             <td className="py-4 px-6 text-sm font-bold text-white">{ed.anio}</td>
                             <td className="py-4 px-6 text-sm text-gray-300 font-light">{ed.pais_anfitrion}</td>
                             <td className="py-4 px-6 text-sm text-yellow-500 font-semibold">{ed.campeon}</td>
-                            <td className="py-4 px-6 text-sm text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
-                                  <Edit className="h-3.5 w-3.5" />
-                                </button>
-                                <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            </td>
+                            {user?.role?.toUpperCase() === "ADMIN" && (
+                               <td className="py-4 px-6 text-sm text-right">
+                                 <div className="flex items-center justify-end gap-2">
+                                   <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
+                                     <Edit className="h-3.5 w-3.5" />
+                                   </button>
+                                   <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
+                                     <Trash2 className="h-3.5 w-3.5" />
+                                   </button>
+                                 </div>
+                               </td>
+                             )}
                           </tr>
                         ))}
                       </tbody>
@@ -313,7 +319,9 @@ export default function Dashboard() {
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Partidos</th>
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Goles F/C</th>
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Posesión</th>
-                      <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                      {user?.role?.toUpperCase() === "ADMIN" && (
+                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -326,16 +334,18 @@ export default function Dashboard() {
                           {eq.goles_f} F / {eq.goles_c} C
                         </td>
                         <td className="py-4 px-6 text-sm text-cyan-400 font-semibold">{eq.posesion}</td>
-                        <td className="py-4 px-6 text-sm text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
-                              <Edit className="h-3.5 w-3.5" />
-                            </button>
-                            <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
+                        {user?.role?.toUpperCase() === "ADMIN" && (
+                           <td className="py-4 px-6 text-sm text-right">
+                             <div className="flex items-center justify-end gap-2">
+                               <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
+                                 <Edit className="h-3.5 w-3.5" />
+                               </button>
+                               <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
+                                 <Trash2 className="h-3.5 w-3.5" />
+                               </button>
+                             </div>
+                           </td>
+                         )}
                       </tr>
                     ))}
                   </tbody>
@@ -353,7 +363,9 @@ export default function Dashboard() {
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Partidos</th>
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Goles</th>
                       <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Asistencias</th>
-                      <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                      {user?.role?.toUpperCase() === "ADMIN" && (
+                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -364,16 +376,18 @@ export default function Dashboard() {
                         <td className="py-4 px-6 text-sm text-gray-300">{jg.pj}</td>
                         <td className="py-4 px-6 text-sm text-yellow-500 font-semibold">{jg.goles}</td>
                         <td className="py-4 px-6 text-sm text-cyan-400 font-semibold">{jg.asistencias}</td>
-                        <td className="py-4 px-6 text-sm text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
-                              <Edit className="h-3.5 w-3.5" />
-                            </button>
-                            <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
+                        {user?.role?.toUpperCase() === "ADMIN" && (
+                           <td className="py-4 px-6 text-sm text-right">
+                             <div className="flex items-center justify-end gap-2">
+                               <button className="p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 text-gray-300 transition-all cursor-pointer">
+                                 <Edit className="h-3.5 w-3.5" />
+                               </button>
+                               <button className="p-2 rounded-lg bg-red-500/10 border border-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer">
+                                 <Trash2 className="h-3.5 w-3.5" />
+                               </button>
+                             </div>
+                           </td>
+                         )}
                       </tr>
                     ))}
                   </tbody>
