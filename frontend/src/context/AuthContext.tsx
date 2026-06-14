@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../utils/api";
 
 export interface User {
   username?: string;
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/auth/login", {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password,
       });
@@ -75,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      await axios.post("http://127.0.0.1:5000/api/auth/register", {
+      await axios.post(`${API_BASE_URL}/auth/register`, {
         username,
         email,
         password,
