@@ -8,7 +8,7 @@ from app.routes.rankings_routes import rankings_bp
 from app.routes.oracle_routes import oracle_bp
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # Registrar Blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
