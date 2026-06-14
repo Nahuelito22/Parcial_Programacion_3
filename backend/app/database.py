@@ -9,7 +9,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 class Database:
     @staticmethod
-    def get_connection():
+    def get_connection(autocommit=True):
         """
         Retorna una conexión activa a la base de datos MySQL usando la configuración de .env.
         Utiliza el cursor tipo DictCursor para devolver filas como diccionarios.
@@ -27,5 +27,5 @@ class Database:
             password=password,
             database=database,
             cursorclass=DictCursor,
-            autocommit=True
+            autocommit=autocommit
         )
