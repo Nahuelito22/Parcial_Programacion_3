@@ -100,7 +100,7 @@ class AdminTestSuite(unittest.TestCase):
         response = self.client.post("/api/admin/clear-db", headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data["message"], "clear-db endpoint activo")
+        self.assertIn("vaciada correctamente", data["message"])
 
     def test_import_csv_admin(self):
         token = self._generate_token(self.admin_user)
