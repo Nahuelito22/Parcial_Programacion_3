@@ -1,5 +1,9 @@
+import logging
 from flask import jsonify
 from app.database import Database
+from app.services.csv_importer import CSVImporter
+
+logger = logging.getLogger(__name__)
 
 def clear_database():
     """
@@ -35,11 +39,23 @@ def clear_database():
 def import_csv_data():
     """
     Endpoint para importar datos históricos desde archivos CSV.
+    Ejecuta el pipeline ETL completo con transacciones y devuelve un reporte detallado.
     """
-    return jsonify({"message": "import-csv endpoint activo"}), 200
+    logger.info("Solicitud recibida en POST /api/admin/import-csv")
+    try:
+        importer = CSVImporter()
+        result = importer.run()
+        if result["status"] == "success":
+            return jsonify({"message": result["message"]}), 200
+        else:
+            return jsonify({"message": result["message"]}), 500
+    except Exception as e:
+        logger.error(f"Error inesperado al importar CSV: {e}", exc_info=True)
+        return jsonify({"message": f"Error inesperado en el servidor: {str(e)}"}), 500
 
 def sync_api_data():
     """
     Endpoint para sincronizar datos en vivo desde API-Football.
     """
     return jsonify({"message": "sync-api endpoint activo"}), 200
+
