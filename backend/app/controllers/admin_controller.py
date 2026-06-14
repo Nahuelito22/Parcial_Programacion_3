@@ -56,6 +56,30 @@ def import_csv_data():
 def sync_api_data():
     """
     Endpoint para sincronizar datos en vivo desde API-Football.
+    Ejecuta el proceso y retorna códigos de estado semánticos según el resultado.
     """
-    return jsonify({"message": "sync-api endpoint activo"}), 200
+    logger.info("Solicitud recibida en POST /api/admin/sync-api")
+    try:
+        from app.services.api_sync_service import APISyncService
+        import requests
+        
+        sync_service = APISyncService()
+        result = sync_service.run()
+        
+        if result["status"] == "success":
+            return jsonify({"message": result["message"]}), 200
+        elif result["status"] in ["no_data", "partial"]:
+            return jsonify({"message": result["message"]}), 202
+        else:
+            return jsonify({"message": result["message"]}), 500
+            
+    except requests.Timeout as e:
+        logger.error(f"Timeout al conectar con API-Football: {e}")
+        return jsonify({"message": "Error al conectar con API-Football: Tiempo de espera agotado (Timeout)."}), 502
+    except requests.RequestException as e:
+        logger.error(f"Error de conexion al conectar con API-Football: {e}")
+        return jsonify({"message": "Error al conectar con API-Football. Intente mas tarde."}), 502
+    except Exception as e:
+        logger.error(f"Error inesperado al sincronizar API: {e}", exc_info=True)
+        return jsonify({"message": f"Error inesperado en el servidor: {str(e)}"}), 500
 
