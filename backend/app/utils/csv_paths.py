@@ -12,4 +12,6 @@ CSV_FILES = {
     "squads": "squads_curated.csv",
     "player_appearances": "player_appearances_curated.csv",
     "tournament_standings": "tournament_standings_curated.csv",
+    "matches": "matches_curated.csv",
 }
+

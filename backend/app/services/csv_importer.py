@@ -33,6 +33,7 @@ class CSVImporter:
             df_appearances = self._load_csv("player_appearances")
             df_goals = self._load_csv("goals")
             df_bookings = self._load_csv("bookings")
+            df_matches = self._load_csv("matches")
         except Exception as e:
             logger.error(f"Error al cargar archivos CSV: {e}")
             return {"status": "error", "message": f"Error al cargar archivos CSV: {str(e)}"}
@@ -45,6 +46,7 @@ class CSVImporter:
 
             # --- FASE 1: LIMPIEZA SEGURA (Clear-then-insert) ---
             logger.info("Fase de Limpieza: Vaciando tablas existentes...")
+            cursor.execute("DELETE FROM partidos")
             cursor.execute("DELETE FROM estadisticas_jugadores")
             cursor.execute("DELETE FROM estadisticas_equipos")
             cursor.execute("DELETE FROM ediciones")
@@ -110,8 +112,8 @@ class CSVImporter:
                 how="inner"
             )
 
-            # Generar mapeo único de team_id a entero secuencial
-            all_men_team_ids = df_team_stats_merged["team_id"].dropna().unique()
+            # Generar mapeo único de team_id a entero secuencial usando el maestro de equipos
+            all_men_team_ids = df_teams["team_id"].dropna().unique()
             sorted_team_ids = sorted(list(all_men_team_ids))
             team_uuid_to_int = {uuid: idx + 1 for idx, uuid in enumerate(sorted_team_ids)}
 
@@ -229,13 +231,111 @@ class CSVImporter:
                 player_rows
             )
 
+            # --- FASE 5: PARTIDOS ---
+            logger.info("Fase de Transformación: Procesando Partidos...")
+            
+            # Helper para limpiar nulos
+            def clean_val(val, default=None):
+                if pd.isna(val) or val is None:
+                    return default
+                return val
+
+            df_matches_men = pd.merge(
+                df_matches,
+                df_men_tournaments[["tournament_id", "year"]],
+                on="tournament_id",
+                how="inner"
+            )
+
+            match_rows = []
+            for _, row in df_matches_men.iterrows():
+                edicion_id = year_to_edicion_id.get(int(row["year"]))
+                if not edicion_id:
+                    continue
+
+                home_uuid = row["home_team_id"]
+                away_uuid = row["away_team_id"]
+                home_id = team_uuid_to_int.get(home_uuid)
+                away_id = team_uuid_to_int.get(away_uuid)
+
+                if not home_id or not away_id:
+                    logger.warning(f"Ignorando partido {row['match_id']}: equipo local ({home_uuid}) o visitante ({away_uuid}) no encontrado en mapeo.")
+                    continue
+
+                # Limpieza de nulos
+                group_name = clean_val(row["group_name"])
+                stadium_name = clean_val(row["stadium_name"])
+                city_name = clean_val(row["city_name"])
+                match_date = clean_val(row["match_date"])
+
+                pen_local = clean_val(row["home_team_score_penalties"])
+                pen_visitante = clean_val(row["away_team_score_penalties"])
+                
+                # Conversión a enteros para penales
+                penales_local = int(pen_local) if pen_local is not None and not pd.isna(pen_local) else None
+                penales_visitante = int(pen_visitante) if pen_visitante is not None and not pd.isna(pen_visitante) else None
+
+                # Extra time boolean
+                is_extra = True if str(row["extra_time"]).upper() == "TRUE" else False
+
+                # Resultado
+                res_raw = clean_val(row["result"])
+                if res_raw == "home team win":
+                    resultado = "local"
+                elif res_raw == "away team win":
+                    resultado = "visitante"
+                elif res_raw == "draw":
+                    resultado = "empate"
+                else:
+                    g_local = int(row["home_team_score"])
+                    g_visitante = int(row["away_team_score"])
+                    if g_local > g_visitante:
+                        resultado = "local"
+                    elif g_visitante > g_local:
+                        resultado = "visitante"
+                    else:
+                        resultado = "empate"
+
+                match_rows.append((
+                    int(edicion_id),
+                    match_date,
+                    clean_val(row["stage_name"]),
+                    group_name,
+                    stadium_name,
+                    city_name,
+                    int(home_id),
+                    clean_val(row["home_team_name"]),
+                    int(away_id),
+                    clean_val(row["away_team_name"]),
+                    int(row["home_team_score"]),
+                    int(row["away_team_score"]),
+                    penales_local,
+                    penales_visitante,
+                    is_extra,
+                    resultado,
+                    clean_val(row["match_id"])
+                ))
+
+            logger.info(f"Fase de Carga: Insertando {len(match_rows)} partidos...")
+            cursor.executemany(
+                """
+                INSERT INTO partidos (
+                    edicion_id, match_date, stage_name, group_name, stadium_name, city_name,
+                    equipo_local_id, equipo_local_nombre, equipo_visitante_id, equipo_visitante_nombre,
+                    goles_local, goles_visitante, penales_local, penales_visitante, extra_time,
+                    resultado, external_match_id
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                match_rows
+            )
+
             # Confirmar transacción
             conn.commit()
             logger.info("Transacción confirmada. Pipeline ETL finalizado correctamente.")
 
             return {
                 "status": "success",
-                "message": f"Historico de datos CSV importado correctamente. Ediciones: {len(edition_rows)}, Equipos: {len(team_rows)}, Jugadores: {len(player_rows)}"
+                "message": f"Historico de datos CSV importado correctamente. Ediciones: {len(edition_rows)}, Equipos: {len(team_rows)}, Jugadores: {len(player_rows)}, Partidos: {len(match_rows)}"
             }
 
         except Exception as e:
