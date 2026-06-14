@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import unittest.mock
 import jwt
 import datetime
 
@@ -110,13 +111,55 @@ class AdminTestSuite(unittest.TestCase):
         data = response.get_json()
         self.assertIn("importado correctamente", data["message"])
 
-    def test_sync_api_admin(self):
+    @unittest.mock.patch('app.services.api_sync_service.APISyncService.run')
+    def test_sync_api_admin_success(self, mock_run):
+        mock_run.return_value = {
+            "status": "success",
+            "message": "Datos del Mundial 2026 sincronizados correctamente. Equipos: 48, Jugadores: 100"
+        }
         token = self._generate_token(self.admin_user)
         headers = {"Authorization": f"Bearer {token}"}
         response = self.client.post("/api/admin/sync-api", headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data["message"], "sync-api endpoint activo")
+        self.assertIn("sincronizados correctamente", data["message"])
+
+    @unittest.mock.patch('app.services.api_sync_service.APISyncService.run')
+    def test_sync_api_admin_partial(self, mock_run):
+        mock_run.return_value = {
+            "status": "partial",
+            "message": "Sincronizacion parcial del Mundial 2026 realizada debido a limitacion de peticiones API (Rate Limit 429)."
+        }
+        token = self._generate_token(self.admin_user)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = self.client.post("/api/admin/sync-api", headers=headers)
+        self.assertEqual(response.status_code, 202)
+        data = response.get_json()
+        self.assertIn("Sincronizacion parcial", data["message"])
+
+    @unittest.mock.patch('app.services.api_sync_service.APISyncService.run')
+    def test_sync_api_admin_no_data(self, mock_run):
+        mock_run.return_value = {
+            "status": "no_data",
+            "message": "No hay datos disponibles aun para el Mundial 2026 en API-Football. Intente mas tarde."
+        }
+        token = self._generate_token(self.admin_user)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = self.client.post("/api/admin/sync-api", headers=headers)
+        self.assertEqual(response.status_code, 202)
+        data = response.get_json()
+        self.assertIn("No hay datos disponibles", data["message"])
+
+    @unittest.mock.patch('app.services.api_sync_service.APISyncService.run')
+    def test_sync_api_admin_timeout(self, mock_run):
+        import requests
+        mock_run.side_effect = requests.Timeout("Connection timed out")
+        token = self._generate_token(self.admin_user)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = self.client.post("/api/admin/sync-api", headers=headers)
+        self.assertEqual(response.status_code, 502)
+        data = response.get_json()
+        self.assertIn("Tiempo de espera agotado", data["message"])
 
 if __name__ == "__main__":
     unittest.main()
