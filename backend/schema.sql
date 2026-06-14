@@ -59,3 +59,27 @@ CREATE TABLE IF NOT EXISTS estadisticas_jugadores (
     CONSTRAINT chk_asistencias CHECK (asistencias >= 0),
     CONSTRAINT chk_tarjetas CHECK (tarjetas_amarillas >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. Tabla: partidos
+-- Almacena la información histórica de cada partido de los mundiales
+CREATE TABLE IF NOT EXISTS partidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    edicion_id INT NOT NULL,
+    match_date DATE,
+    stage_name VARCHAR(50),
+    group_name VARCHAR(10),
+    stadium_name VARCHAR(100),
+    city_name VARCHAR(100),
+    equipo_local_id INT NOT NULL,
+    equipo_local_nombre VARCHAR(100),
+    equipo_visitante_id INT NOT NULL,
+    equipo_visitante_nombre VARCHAR(100),
+    goles_local INT NOT NULL DEFAULT 0,
+    goles_visitante INT NOT NULL DEFAULT 0,
+    penales_local INT DEFAULT NULL,
+    penales_visitante INT DEFAULT NULL,
+    extra_time BOOLEAN DEFAULT FALSE,
+    resultado VARCHAR(20),  -- 'local' | 'visitante' | 'empate'
+    external_match_id VARCHAR(50) DEFAULT NULL,
+    FOREIGN KEY (edicion_id) REFERENCES ediciones(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
