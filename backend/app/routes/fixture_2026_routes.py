@@ -8,7 +8,9 @@ from app.controllers.fixture_2026_controller import (
     get_all_groups,
     get_all_stadiums,
     sync_2026,
-    refresh_live_2026
+    refresh_live_2026,
+    get_stats,
+    sync_stats
 )
 
 fixture_2026_bp = Blueprint('fixture_2026', __name__)
@@ -49,3 +51,13 @@ def sync():
 @admin_required
 def refresh_live():
     return refresh_live_2026()
+
+@fixture_2026_bp.route('/stats', methods=['GET'])
+def stats():
+    return get_stats()
+
+@fixture_2026_bp.route('/stats/sync', methods=['POST'])
+@token_required
+@admin_required
+def stats_sync():
+    return sync_stats()
