@@ -87,7 +87,45 @@ export interface SyncResponse {
   stadiums?: number;
   groups?: number;
   matches?: number;
+  goleadores?: number;
+  asistencias?: number;
+  tarjetas?: number;
   message?: string;
+}
+
+export interface Goleador2026 {
+  id?: number;
+  nombre: string;
+  equipo: string;
+  equipo_codigo: string;
+  partidos: number;
+  goles: number;
+}
+
+export interface Asistencia2026 {
+  id?: number;
+  nombre: string;
+  equipo: string;
+  equipo_codigo: string;
+  partidos: number;
+  asistencias: number;
+}
+
+export interface Tarjeta2026 {
+  id?: number;
+  equipo: string;
+  equipo_codigo: string;
+  posicion?: number;
+  partidos: number;
+  amarillas: number;
+  rojas: number;
+  puntos: number;
+}
+
+export interface Stats2026 {
+  goleadores: Goleador2026[];
+  asistencias: Asistencia2026[];
+  tarjetas: Tarjeta2026[];
 }
 
 // 1. Hook para obtener partidos con filtros dinámicos
@@ -173,6 +211,20 @@ export function useSyncWorldCup2026(token: string | null) {
       queryClient.invalidateQueries({ queryKey: ["teams-2026"] });
       queryClient.invalidateQueries({ queryKey: ["groups-2026"] });
       queryClient.invalidateQueries({ queryKey: ["stadiums-2026"] });
+      queryClient.invalidateQueries({ queryKey: ["stats-2026"] });
     },
+  });
+}
+
+// 6. Hook para obtener estadisticas
+export function useStats2026() {
+  return useQuery({
+    queryKey: ["stats-2026"],
+    queryFn: async () => {
+      const response = await axios.get<Stats2026>(`${API_BASE_URL}/2026/stats`);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
   });
 }
