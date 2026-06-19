@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { API_BASE_URL } from "../utils/api";
+import { useSyncWorldCup2026 } from "../hooks/useWorldCup2026";
 import { 
   FileSpreadsheet, 
   RefreshCw, 
   Trash2, 
   Loader2, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Trophy
 } from "lucide-react";
 
 interface DataManagementPanelProps {
@@ -22,8 +24,13 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
   const [syncStatus, setSyncStatus] = useState<StatusType>("idle");
   const [syncMessage, setSyncMessage] = useState<string>("");
 
+  const [sync2026Status, setSync2026Status] = useState<StatusType>("idle");
+  const [sync2026Message, setSync2026Message] = useState<string>("");
+
   const [clearStatus, setClearStatus] = useState<StatusType>("idle");
   const [clearMessage, setClearMessage] = useState<string>("");
+
+  const sync2026Mutation = useSyncWorldCup2026(token);
 
   // Manejo de la importación masiva de CSV
   const handleImportCSV = async () => {
@@ -50,7 +57,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
     }
   };
 
-  // Manejo de la sincronización de la API externa
+  // Manejo de la sincronización de la API externa (Histórico 2022)
   const handleSyncAPI = async () => {
     setSyncStatus("loading");
     setSyncMessage("");
@@ -67,12 +74,32 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
         throw new Error(data.message || "Error al sincronizar con la API externa.");
       }
       setSyncStatus("success");
-      setSyncMessage(data.message || "Datos del Mundial 2026 sincronizados correctamente.");
+      setSyncMessage(data.message || "Datos históricos de la API sincronizados correctamente.");
     } catch (err: any) {
       console.error(err);
       setSyncStatus("error");
       setSyncMessage(err.message || "Error de conexión con el servidor Flask.");
     }
+  };
+
+  // Sincronización del Mundial 2026 utilizando React Query Mutation
+  const handleSync2026 = () => {
+    setSync2026Status("loading");
+    setSync2026Message("");
+    sync2026Mutation.mutate(undefined, {
+      onSuccess: (data) => {
+        setSync2026Status("success");
+        setSync2026Message(
+          data.message || `Mundial 2026 sincronizado correctamente. Equipos: ${data.teams || 48}, Partidos: ${data.matches || 104}, Estadios: ${data.stadiums || 16}, Grupos: ${data.groups || 12}`
+        );
+      },
+      onError: (err: any) => {
+        console.error(err);
+        setSync2026Status("error");
+        const errMsg = err.response?.data?.message || err.message || "Error al sincronizar datos del Mundial 2026.";
+        setSync2026Message(errMsg);
+      }
+    });
   };
 
   // Manejo de la limpieza destructiva de la Base de Datos
@@ -106,7 +133,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* CARD A: Importar CSV */}
       <div className="glassmorphism rounded-2xl border border-white/5 p-6 flex flex-col justify-between h-full hover:border-emerald-500/30 hover:bg-white/[0.02] transition-all duration-300 group">
         <div className="space-y-4">
@@ -152,7 +179,7 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
         </div>
       </div>
 
-      {/* CARD B: Sincronizar API */}
+      {/* CARD B: Sincronizar API Histórica */}
       <div className="glassmorphism rounded-2xl border border-white/5 p-6 flex flex-col justify-between h-full hover:border-blue-500/30 hover:bg-white/[0.02] transition-all duration-300 group">
         <div className="space-y-4">
           <div className="h-12 w-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-300">
@@ -160,10 +187,10 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
           </div>
           <div>
             <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors duration-300">
-              Sincronizar Mundial 2026
+              Sincronizar Histórico 2022
             </h3>
             <p className="text-sm text-gray-400 mt-2 leading-relaxed">
-              Conecta con el servicio de API externa para obtener las últimas actualizaciones en tiempo real del Mundial 2026.
+              Conecta con API-Football para sincronizar datos y estadísticas del Mundial de Qatar 2022.
             </p>
           </div>
         </div>
@@ -191,13 +218,58 @@ export default function DataManagementPanel({ token }: DataManagementPanelProps)
                 <span>Sincronizando...</span>
               </>
             ) : (
+              <span>Sincronizar 2022</span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* CARD C: Sincronizar Mundial 2026 */}
+      <div className="glassmorphism rounded-2xl border border-white/5 p-6 flex flex-col justify-between h-full hover:border-yellow-500/30 hover:bg-white/[0.02] transition-all duration-300 group">
+        <div className="space-y-4">
+          <div className="h-12 w-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform duration-300">
+            <Trophy className={`h-6 w-6 ${sync2026Status === "loading" ? "animate-bounce" : ""}`} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors duration-300">
+              Sincronizar Mundial 2026
+            </h3>
+            <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+              Conecta con el servicio de API externa para obtener el fixture, grupos, estadios y marcadores en vivo de 2026.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 space-y-4">
+          {sync2026Status === "success" && (
+            <div className="flex items-start gap-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-xs">
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{sync2026Message}</span>
+            </div>
+          )}
+          {sync2026Status === "error" && (
+            <div className="flex items-start gap-2 text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-xs">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{sync2026Message}</span>
+            </div>
+          )}
+          <button
+            onClick={handleSync2026}
+            disabled={sync2026Status === "loading"}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+          >
+            {sync2026Status === "loading" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Sincronizando...</span>
+              </>
+            ) : (
               <span>Sincronizar API</span>
             )}
           </button>
         </div>
       </div>
 
-      {/* CARD C: Vaciar Base de Datos */}
+      {/* CARD D: Vaciar Base de Datos */}
       <div className="glassmorphism rounded-2xl border border-white/5 p-6 flex flex-col justify-between h-full hover:border-red-500/30 hover:bg-white/[0.02] transition-all duration-300 group">
         <div className="space-y-4">
           <div className="h-12 w-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform duration-300">
