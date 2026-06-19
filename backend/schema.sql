@@ -83,3 +83,86 @@ CREATE TABLE IF NOT EXISTS partidos (
     external_match_id VARCHAR(50) DEFAULT NULL,
     FOREIGN KEY (edicion_id) REFERENCES ediciones(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================================================
+-- TABLAS PARA EL FIXTURE Y ESTADÍSTICAS DEL MUNDIAL 2026
+-- ========================================================
+
+-- 6. Tabla: partidos_2026
+-- Almacena el fixture en vivo y resultados del Mundial 2026
+CREATE TABLE IF NOT EXISTS partidos_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_game_id VARCHAR(10) NOT NULL UNIQUE,
+    grupo VARCHAR(10),
+    tipo VARCHAR(20),        -- group, r32, r16, qf, sf, third, final
+    matchday INT,
+    fecha_local VARCHAR(50),
+    estadio_id VARCHAR(10),
+    estadio_nombre VARCHAR(100),
+    ciudad VARCHAR(100),
+    pais_sede VARCHAR(100),
+    equipo_local_id VARCHAR(10),
+    equipo_local_nombre VARCHAR(100),
+    equipo_local_codigo VARCHAR(10),
+    equipo_local_logo VARCHAR(255),
+    equipo_visitante_id VARCHAR(10),
+    equipo_visitante_nombre VARCHAR(100),
+    equipo_visitante_codigo VARCHAR(10),
+    equipo_visitante_logo VARCHAR(255),
+    goles_local INT DEFAULT 0,
+    goles_visitante INT DEFAULT 0,
+    goleadores_local TEXT,
+    goleadores_visitante TEXT,
+    finalizado BOOLEAN DEFAULT FALSE,
+    tiempo_transcurrido VARCHAR(50),
+    etapa_detalle VARCHAR(100),  -- "Winner Group A", etc. para knockout
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_grupo (grupo),
+    INDEX idx_tipo (tipo),
+    INDEX idx_fecha (fecha_local)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. Tabla: equipos_2026
+-- Almacena los 48 equipos clasificados del Mundial 2026
+CREATE TABLE IF NOT EXISTS equipos_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_team_id VARCHAR(10) NOT NULL UNIQUE,
+    nombre_en VARCHAR(100),
+    codigo_fifa VARCHAR(10),
+    grupo VARCHAR(10),
+    bandera_url VARCHAR(255),
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. Tabla: estadios_2026
+-- Almacena los 16 estadios sedes del Mundial 2026
+CREATE TABLE IF NOT EXISTS estadios_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_stadium_id VARCHAR(10) NOT NULL UNIQUE,
+    nombre_en VARCHAR(100),
+    nombre_fifa VARCHAR(100),
+    ciudad VARCHAR(100),
+    pais VARCHAR(100),
+    capacidad INT,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Tabla: grupos_2026
+-- Almacena las posiciones de los 12 grupos del Mundial 2026
+CREATE TABLE IF NOT EXISTS grupos_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    grupo VARCHAR(10) NOT NULL,
+    equipo_id VARCHAR(10) NOT NULL,
+    posicion INT,
+    puntos INT DEFAULT 0,
+    goles_favor INT DEFAULT 0,
+    goles_contra INT DEFAULT 0,
+    diferencia_gol INT DEFAULT 0,
+    partidos_jugados INT DEFAULT 0,
+    victorias INT DEFAULT 0,
+    empates INT DEFAULT 0,
+    derrotas INT DEFAULT 0,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_grupo_equipo (grupo, equipo_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
