@@ -6,15 +6,12 @@ import {
   useTeams2026,
   useGroups2026,
   useStadiums2026,
-  useStats2026
 } from "../hooks/useWorldCup2026";
 import FixtureCard2026 from "../components/fixture/FixtureCard2026";
 import GroupStandings from "../components/fixture/GroupStandings";
 import TeamCard from "../components/fixture/TeamCard";
 import StadiumCard from "../components/fixture/StadiumCard";
-import StatsGoleadores from "../components/fixture/StatsGoleadores";
-import StatsAsistencias from "../components/fixture/StatsAsistencias";
-import StatsTarjetas from "../components/fixture/StatsTarjetas";
+import StatsTab from "../components/fixture/StatsTab";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
@@ -30,8 +27,7 @@ import {
   AlertTriangle,
   Calendar,
   Layers,
-  Flame,
-  BarChart3
+  Flame
 } from "lucide-react";
 
 type TabType = "fixture" | "grupos" | "equipos" | "estadios" | "stats";
@@ -49,7 +45,6 @@ export default function Fixture2026Page() {
   const { data: teams, isLoading: loadingTeams, error: errorTeams } = useTeams2026();
   const { data: groups, isLoading: loadingGroups, error: errorGroups } = useGroups2026();
   const { data: stadiums, isLoading: loadingStadiums, error: errorStadiums } = useStadiums2026();
-  const { data: stats, isLoading: loadingStats, error: errorStats } = useStats2026();
 
   const navigateToDashboard = (tab: "ediciones" | "equipos" | "jugadores" | "ingesta") => {
     navigate("/dashboard", { state: { activeTab: tab } });
@@ -78,15 +73,13 @@ export default function Fixture2026Page() {
     (activeTab === "fixture" && loadingFixtures) ||
     (activeTab === "equipos" && loadingTeams) ||
     (activeTab === "grupos" && loadingGroups) ||
-    (activeTab === "estadios" && loadingStadiums) ||
-    (activeTab === "stats" && loadingStats);
+    (activeTab === "estadios" && loadingStadiums);
 
   const error =
     (activeTab === "fixture" && errorFixtures) ||
     (activeTab === "equipos" && errorTeams) ||
     (activeTab === "grupos" && errorGroups) ||
-    (activeTab === "estadios" && errorStadiums) ||
-    (activeTab === "stats" && errorStats);
+    (activeTab === "estadios" && errorStadiums);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex relative overflow-hidden">
@@ -402,31 +395,7 @@ export default function Fixture2026Page() {
 
               {/* Contenido Pestaña Estadísticas */}
               {activeTab === "stats" && (
-                <div className="space-y-12">
-                  <div className="flex items-center gap-2 text-yellow-500 mb-6">
-                    <BarChart3 className="h-5 w-5" />
-                    <h2 className="text-lg font-extrabold uppercase tracking-wider font-title">
-                      Estadísticas del Torneo
-                    </h2>
-                  </div>
-
-                  {/* Goleadores */}
-                  <div className="glassmorphism rounded-2xl border border-white/5 p-6">
-                    <StatsGoleadores goleadores={stats?.goleadores || []} />
-                  </div>
-
-                  {/* Asistencias */}
-                  <div className="glassmorphism rounded-2xl border border-white/5 p-6">
-                    <StatsAsistencias asistencias={stats?.asistencias || []} />
-                  </div>
-
-                  {/* Tarjetas */}
-                  <div className="glassmorphism rounded-2xl border border-white/5 p-6">
-                    <StatsTarjetas tarjetas={stats?.tarjetas || []} />
-                  </div>
-                </div>
-              )}
-                </div>
+                <StatsTab />
               )}
             </motion.div>
           )}

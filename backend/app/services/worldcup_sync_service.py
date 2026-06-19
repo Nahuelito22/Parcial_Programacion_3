@@ -56,6 +56,30 @@ class WorldCupSyncService:
                     "bandera_url": t["logo"],
                 }
             print(f"[Sync] {len(teams_data)} equipos sincronizados.")
+
+            # Insertar posiciones iniciales de grupos (todos en 0)
+            print("[Sync] Generando posiciones iniciales de grupos...")
+            for idx, t in enumerate(teams_data):
+                abbrev = t["abbreviation"]
+                group = get_group_by_abbrev(abbrev)
+                if group:
+                    # Calcular posicion dentro del grupo (1-4)
+                    teams_in_group = [x for x in teams_data if get_group_by_abbrev(x["abbreviation"]) == group]
+                    pos = next((i + 1 for i, x in enumerate(teams_in_group) if x["abbreviation"] == abbrev), 1)
+                    Group2026.upsert({
+                        "grupo": group,
+                        "equipo_id": str(t["id"]),
+                        "posicion": pos,
+                        "puntos": 0,
+                        "goles_favor": 0,
+                        "goles_contra": 0,
+                        "diferencia_gol": 0,
+                        "partidos_jugados": 0,
+                        "victorias": 0,
+                        "empates": 0,
+                        "derrotas": 0,
+                    })
+            print(f"[Sync] Grupos generados para {len(teams_data)} equipos.")
         except Exception as e:
             logger.error(f"Error obteniendo equipos de ESPN: {e}")
             print(f"[Sync] ERROR: No se pudieron obtener equipos: {e}")
@@ -126,6 +150,10 @@ class WorldCupSyncService:
                     "etapa_detalle": m.get("etapa_detalle"),
                 })
             print(f"[Sync] {len(matches_data)} partidos sincronizados.")
+
+            # Recalcular posiciones de grupos a partir de los partidos finalizados
+            print("[Sync] Recalculando posiciones de grupos...")
+            self._recalculate_groups(matches_data, teams_data)
 
         except Exception as e:
             logger.error(f"Error obteniendo scoreboard de ESPN: {e}")
@@ -247,3 +275,87 @@ class WorldCupSyncService:
 
     def refresh_live(self, email=None, password=None):
         return self.refresh_live_games(email, password)
+
+    def _recalculate_groups(self, matches_data, teams_data):
+        """
+        Recalcula las posiciones de grupos a partir de los partidos finalizados.
+        """
+        # Construir mapa team_id -> grupo
+        team_group = {}
+        for t in teams_data:
+            abbrev = t["abbreviation"]
+            group = get_group_by_abbrev(abbrev)
+            if group:
+                team_group[str(t["id"])] = group
+
+        # Acumular stats por equipo
+        stats = {}
+        for m in matches_data:
+            if not m.get("finalizado"):
+                continue
+            local_id = str(m["equipo_local"]["id"])
+            visit_id = str(m["equipo_visitante"]["id"])
+            gl = m.get("goles_local", 0)
+            gv = m.get("goles_visitante", 0)
+
+            for tid, gf, gc in [(local_id, gl, gv), (visit_id, gv, gl)]:
+                if tid not in stats:
+                    stats[tid] = {"pj": 0, "pg": 0, "pe": 0, "pp": 0, "gf": 0, "gc": 0, "pts": 0}
+                s = stats[tid]
+                s["pj"] += 1
+                s["gf"] += gf
+                s["gc"] += gc
+                if gf > gc:
+                    s["pg"] += 1
+                    s["pts"] += 3
+                elif gf == gc:
+                    s["pe"] += 1
+                    s["pts"] += 1
+                else:
+                    s["pp"] += 1
+
+        # Actualizar grupos_2026 con stats acumuladas
+        for team_id, s in stats.items():
+            group = team_group.get(team_id)
+            if not group:
+                continue
+            Group2026.upsert({
+                "grupo": group,
+                "equipo_id": team_id,
+                "posicion": 1,
+                "puntos": s["pts"],
+                "goles_favor": s["gf"],
+                "goles_contra": s["gc"],
+                "diferencia_gol": s["gf"] - s["gc"],
+                "partidos_jugados": s["pj"],
+                "victorias": s["pg"],
+                "empates": s["pe"],
+                "derrotas": s["pp"],
+            })
+
+        # Reordenar posiciones dentro de cada grupo
+        all_groups = Group2026.get_standings()
+        groups_map = {}
+        for row in all_groups:
+            g = row["grupo"]
+            if g not in groups_map:
+                groups_map[g] = []
+            groups_map[g].append(row)
+
+        for g, teams in groups_map.items():
+            teams.sort(key=lambda x: (-x["puntos"], -x["diferencia_gol"], -x["goles_favor"]))
+            for pos, t in enumerate(teams, 1):
+                if t["posicion"] != pos:
+                    Group2026.upsert({
+                        "grupo": g,
+                        "equipo_id": t["equipo_id"],
+                        "posicion": pos,
+                        "puntos": t["puntos"],
+                        "goles_favor": t["goles_favor"],
+                        "goles_contra": t["goles_contra"],
+                        "diferencia_gol": t["diferencia_gol"],
+                        "partidos_jugados": t["partidos_jugados"],
+                        "victorias": t["victorias"],
+                        "empates": t["empates"],
+                        "derrotas": t["derrotas"],
+                    })
