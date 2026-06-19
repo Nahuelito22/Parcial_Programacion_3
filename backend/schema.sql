@@ -166,3 +166,46 @@ CREATE TABLE IF NOT EXISTS grupos_2026 (
     UNIQUE KEY unique_grupo_equipo (grupo, equipo_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 10. Tabla: goleadores_2026
+-- Goleadores del Mundial 2026 (scrapeados desde ESPN)
+CREATE TABLE IF NOT EXISTS goleadores_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_player_id VARCHAR(20),
+    nombre VARCHAR(100),
+    equipo VARCHAR(100),
+    equipo_codigo VARCHAR(10),
+    partidos INT DEFAULT 0,
+    goles INT DEFAULT 0,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_goles (goles DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. Tabla: asistencias_2026
+-- Asistencias del Mundial 2026 (scrapeados desde ESPN)
+CREATE TABLE IF NOT EXISTS asistencias_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_player_id VARCHAR(20),
+    nombre VARCHAR(100),
+    equipo VARCHAR(100),
+    equipo_codigo VARCHAR(10),
+    partidos INT DEFAULT 0,
+    asistencias INT DEFAULT 0,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_asistencias (asistencias DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 12. Tabla: tarjetas_2026
+-- Tarjetas por equipo del Mundial 2026 (scrapeados desde ESPN)
+CREATE TABLE IF NOT EXISTS tarjetas_2026 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    equipo VARCHAR(100),
+    equipo_codigo VARCHAR(10),
+    posicion INT,
+    partidos INT DEFAULT 0,
+    amarillas INT DEFAULT 0,
+    rojas INT DEFAULT 0,
+    puntos INT DEFAULT 0,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_puntos (puntos DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
