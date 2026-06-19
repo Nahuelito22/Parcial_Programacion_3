@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from app.routes.auth_routes import auth_bp
@@ -7,6 +8,7 @@ from app.routes.h2h_routes import h2h_bp
 from app.routes.rankings_routes import rankings_bp
 from app.routes.oracle_routes import oracle_bp
 from app.routes.fixture_2026_routes import fixture_2026_bp
+from app.services.live_refresh_service import LiveRefreshService
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -19,6 +21,11 @@ app.register_blueprint(h2h_bp, url_prefix='/api/h2h')
 app.register_blueprint(rankings_bp, url_prefix='/api/rankings')
 app.register_blueprint(oracle_bp, url_prefix='/api/oracle')
 app.register_blueprint(fixture_2026_bp, url_prefix='/api/2026')
+
+# Iniciar el servicio de refresco automático en segundo plano para partidos en vivo
+refresh_service = LiveRefreshService()
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+    refresh_service.start()
 
 
 
