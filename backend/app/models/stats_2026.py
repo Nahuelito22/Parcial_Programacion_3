@@ -3,15 +3,25 @@ from app.database import Database
 
 class Goleador2026:
     @staticmethod
-    def get_all(limit=50):
+    def get_all(limit=20, offset=0):
         conn = Database.get_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM goleadores_2026 ORDER BY goles DESC, partidos ASC LIMIT %s",
-                    [limit]
+                    "SELECT * FROM goleadores_2026 ORDER BY goles DESC, partidos ASC LIMIT %s OFFSET %s",
+                    [limit, offset]
                 )
                 return cursor.fetchall()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) as cnt FROM goleadores_2026")
+                return cursor.fetchone()["cnt"]
         finally:
             conn.close()
 
@@ -46,15 +56,25 @@ class Goleador2026:
 
 class Asistencia2026:
     @staticmethod
-    def get_all(limit=50):
+    def get_all(limit=20, offset=0):
         conn = Database.get_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM asistencias_2026 ORDER BY asistencias DESC, partidos ASC LIMIT %s",
-                    [limit]
+                    "SELECT * FROM asistencias_2026 ORDER BY asistencias DESC, partidos ASC LIMIT %s OFFSET %s",
+                    [limit, offset]
                 )
                 return cursor.fetchall()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) as cnt FROM asistencias_2026")
+                return cursor.fetchone()["cnt"]
         finally:
             conn.close()
 
@@ -89,14 +109,25 @@ class Asistencia2026:
 
 class Tarjeta2026:
     @staticmethod
-    def get_all():
+    def get_all(limit=20, offset=0):
         conn = Database.get_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM tarjetas_2026 ORDER BY puntos DESC, amarillas DESC"
+                    "SELECT * FROM tarjetas_2026 ORDER BY puntos DESC, amarillas DESC LIMIT %s OFFSET %s",
+                    [limit, offset]
                 )
                 return cursor.fetchall()
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) as cnt FROM tarjetas_2026")
+                return cursor.fetchone()["cnt"]
         finally:
             conn.close()
 

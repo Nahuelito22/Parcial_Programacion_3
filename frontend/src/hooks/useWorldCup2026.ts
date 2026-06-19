@@ -128,6 +128,13 @@ export interface Stats2026 {
   tarjetas: Tarjeta2026[];
 }
 
+export interface StatsPage {
+  items: (Goleador2026 | Asistencia2026 | Tarjeta2026)[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 // 1. Hook para obtener partidos con filtros dinámicos
 export function useFixtures2026(filtros?: {
   grupo?: string;
@@ -216,15 +223,16 @@ export function useSyncWorldCup2026(token: string | null) {
   });
 }
 
-// 6. Hook para obtener estadisticas
-export function useStats2026() {
+// 6. Hook para obtener estadisticas (paginado)
+export function useStats2026(tab: string = "goleadores", limit: number = 20, page: number = 1) {
   return useQuery({
-    queryKey: ["stats-2026"],
+    queryKey: ["stats-2026", tab, limit, page],
     queryFn: async () => {
-      const response = await axios.get<Stats2026>(`${API_BASE_URL}/2026/stats`);
+      const response = await axios.get<StatsPage>(`${API_BASE_URL}/2026/stats`, {
+        params: { tab, limit, page },
+      });
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
   });
 }

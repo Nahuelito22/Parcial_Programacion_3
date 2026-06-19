@@ -246,17 +246,26 @@ def refresh_live_2026():
 def get_stats():
     """
     Retorna estadisticas del Mundial 2026: goleadores, asistencias, tarjetas.
+    Soporta paginacion via query params: limit, page, tab.
     """
     try:
-        goleadores = Goleador2026.get_all(50)
-        asistencias = Asistencia2026.get_all(50)
-        tarjetas = Tarjeta2026.get_all()
+        limit = int(request.args.get("limit", 20))
+        page = int(request.args.get("page", 1))
+        tab = request.args.get("tab", "goleadores")
+        offset = (page - 1) * limit
 
-        return jsonify({
-            "goleadores": goleadores,
-            "asistencias": asistencias,
-            "tarjetas": tarjetas,
-        }), 200
+        if tab == "asistencias":
+            rows = Asistencia2026.get_all(limit, offset)
+            total = Asistencia2026.count()
+            return jsonify({"items": rows, "total": total, "page": page, "limit": limit}), 200
+        elif tab == "tarjetas":
+            rows = Tarjeta2026.get_all(limit, offset)
+            total = Tarjeta2026.count()
+            return jsonify({"items": rows, "total": total, "page": page, "limit": limit}), 200
+        else:
+            rows = Goleador2026.get_all(limit, offset)
+            total = Goleador2026.count()
+            return jsonify({"items": rows, "total": total, "page": page, "limit": limit}), 200
     except Exception as e:
         return jsonify({"message": f"Error al obtener estadisticas: {str(e)}"}), 500
 
