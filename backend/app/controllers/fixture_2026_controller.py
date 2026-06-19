@@ -2,7 +2,9 @@ import os
 from flask import request, jsonify
 from app.models.match_2026 import Match2026
 from app.models.team_2026 import Team2026, Stadium2026, Group2026
+from app.models.stats_2026 import Goleador2026, Asistencia2026, Tarjeta2026
 from app.services.worldcup_sync_service import WorldCupSyncService
+from app.services.espn_stats_scraper import ESPNStatsScraper
 
 def format_match(match, stadiums_cache):
     """
@@ -238,4 +240,78 @@ def refresh_live_2026():
         return jsonify({
             "success": False,
             "message": f"Error interno en el servidor: {str(e)}"
+        }), 500
+
+
+def get_stats():
+    """
+    Retorna estadisticas del Mundial 2026: goleadores, asistencias, tarjetas.
+    """
+    try:
+        goleadores = Goleador2026.get_all(50)
+        asistencias = Asistencia2026.get_all(50)
+        tarjetas = Tarjeta2026.get_all()
+
+        return jsonify({
+            "goleadores": goleadores,
+            "asistencias": asistencias,
+            "tarjetas": tarjetas,
+        }), 200
+    except Exception as e:
+        return jsonify({"message": f"Error al obtener estadisticas: {str(e)}"}), 500
+
+
+def sync_stats():
+    """
+    Scrapea estadisticas desde ESPN y las guarda en la base de datos.
+    """
+    try:
+        scraper = ESPNStatsScraper()
+
+        goleadores = scraper.scrape_goals()
+        Goleador2026.delete_all()
+        for g in goleadores:
+            Goleador2026.upsert({
+                "api_player_id": None,
+                "nombre": g["nombre"],
+                "equipo": g["equipo"],
+                "equipo_codigo": g["equipo_codigo"],
+                "partidos": g["partidos"],
+                "goles": g["goles"],
+            })
+
+        asistencias = scraper.scrape_assists()
+        Asistencia2026.delete_all()
+        for a in asistencias:
+            Asistencia2026.upsert({
+                "api_player_id": None,
+                "nombre": a["nombre"],
+                "equipo": a["equipo"],
+                "equipo_codigo": a["equipo_codigo"],
+                "partidos": a["partidos"],
+                "asistencias": a["asistencias"],
+            })
+
+        tarjetas = scraper.scrape_cards()
+        Tarjeta2026.delete_all()
+        for t in tarjetas:
+            Tarjeta2026.upsert({
+                "equipo": t["equipo"],
+                "equipo_codigo": t["equipo_codigo"],
+                "partidos": t["partidos"],
+                "amarillas": t["amarillas"],
+                "rojas": t["rojas"],
+                "puntos": t["puntos"],
+            })
+
+        return jsonify({
+            "success": True,
+            "goleadores": len(goleadores),
+            "asistencias": len(asistencias),
+            "tarjetas": len(tarjetas),
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error al sincronizar estadisticas: {str(e)}"
         }), 500
