@@ -115,6 +115,15 @@ export default function OraclePage() {
               )}
               <div className="space-y-1">
                 <button
+                  onClick={() => navigate("/dashboard/fixture-2026")}
+                  title="Fixture 2026"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                >
+                  <Trophy className="h-4 w-4 shrink-0" />
+                  <span className={`${isSidebarCollapsed ? "hidden" : ""}`}>Fixture 2026</span>
+                </button>
+
+                <button
                   onClick={() => navigate("/dashboard/h2h")}
                   title="Head-to-Head"
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"

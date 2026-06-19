@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import HeadToHeadPage from "./pages/HeadToHeadPage";
 import RankingsPage from "./pages/RankingsPage";
 import OraclePage from "./pages/OraclePage";
+import Fixture2026Page from "./pages/Fixture2026Page";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -35,6 +36,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/fixture-2026" 
+              element={
+                <ProtectedRoute>
+                  <Fixture2026Page />
                 </ProtectedRoute>
               } 
             />
