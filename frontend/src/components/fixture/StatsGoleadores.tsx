@@ -1,4 +1,4 @@
-import { Goleador2026 } from "../../hooks/useWorldCup2026";
+import type { Goleador2026 } from "../../hooks/useWorldCup2026";
 
 interface Props {
   goleadores: Goleador2026[];

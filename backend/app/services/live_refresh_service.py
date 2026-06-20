@@ -1,65 +1,103 @@
-import os
 import logging
 import threading
 from app.services.worldcup_sync_service import WorldCupSyncService
 
 logger = logging.getLogger(__name__)
 
+
 class LiveRefreshService:
+    """
+    Servicio de actualizacion en vivo para partidos del Mundial 2026.
+    Fuente unica: ESPN API.
+    - Intervalo base: 120s
+    - Backoff exponencial en errores: 120s -> 300s -> 600s -> 900s max
+    - Resetea a 120s tras 3 exitos consecutivos
+    """
+
+    BASE_INTERVAL = 120.0
+    MAX_INTERVAL = 900.0
+    BACKOFF_MULTIPLIER = 2.5
+    SUCCESS_THRESHOLD = 3
+
     def __init__(self):
         self._timer = None
         self._running = False
-        # Instanciar el servicio de sincronización
         self.sync_service = WorldCupSyncService()
+        self._current_interval = self.BASE_INTERVAL
+        self._consecutive_successes = 0
+        self._consecutive_failures = 0
+        self._refresh_count = 0
 
     def start(self):
-        """
-        Inicia el loop de refresco en vivo.
-        """
         if not self._running:
             self._running = True
-            print("[LiveRefreshService] Iniciando servicio de actualización en vivo cada 120s...")
-            logger.info("Iniciando LiveRefreshService...")
+            self._current_interval = self.BASE_INTERVAL
+            self._consecutive_successes = 0
+            self._consecutive_failures = 0
+            print(f"[LiveRefresh] Iniciando servicio de actualizacion en vivo (intervalo: {self._current_interval:.0f}s)")
+            logger.info("LiveRefreshService iniciado.")
             self._schedule_next()
 
     def stop(self):
-        """
-        Detiene el loop de refresco.
-        """
         self._running = False
         if self._timer:
             self._timer.cancel()
-            print("[LiveRefreshService] Servicio de actualización en vivo detenido.")
+            print("[LiveRefresh] Servicio detenido.")
             logger.info("LiveRefreshService detenido.")
 
     def _schedule_next(self):
         if self._running:
-            # Configurar temporizador a 120 segundos
-            self._timer = threading.Timer(120.0, self._refresh)
+            self._timer = threading.Timer(self._current_interval, self._refresh)
             self._timer.daemon = True
             self._timer.start()
 
     def _refresh(self):
-        """
-        Llama a la actualización en vivo de partidos y se vuelve a programar.
-        """
-        print("[LiveRefreshService] Latido: actualizando partidos en vivo...")
+        self._refresh_count += 1
+        print(f"[LiveRefresh] Refresh #{self._refresh_count} (intervalo: {self._current_interval:.0f}s)")
+
         try:
-            # Leer credenciales seguras de variables de entorno
-            email = os.getenv("WORLDCUP_API_EMAIL")
-            password = os.getenv("WORLDCUP_API_PASSWORD")
-            
-            # Ejecutar refresco rápido (únicamente get_games)
-            result = self.sync_service.refresh_live_games(email, password)
+            result = self.sync_service.refresh_live_games()
+
             if result.get("success"):
-                print(f"[LiveRefreshService] Latido exitoso: actualizados {result.get('matches')} partidos.")
-                logger.info(f"Actualizados {result.get('matches')} partidos.")
+                self._on_success(result)
             else:
-                print(f"[LiveRefreshService] Latido fallido: {result.get('error')}")
-                logger.warning(f"Error en refresco en vivo: {result.get('error')}")
+                self._on_failure(result.get("error", "Unknown error"))
         except Exception as e:
-            print(f"[LiveRefreshService] Error inesperado en el latido: {e}")
-            logger.error(f"Error inesperado en LiveRefreshService: {e}", exc_info=True)
+            self._on_failure(str(e))
         finally:
-            # Reprogramar el siguiente ciclo
             self._schedule_next()
+
+    def _on_success(self, result):
+        self._consecutive_successes += 1
+        self._consecutive_failures = 0
+
+        matches = result.get("matches", 0)
+        print(f"[LiveRefresh] OK: {matches} partidos (ESPN). Exitos consecutivos: {self._consecutive_successes}")
+
+        if (self._consecutive_successes >= self.SUCCESS_THRESHOLD
+                and self._current_interval > self.BASE_INTERVAL):
+            self._current_interval = self.BASE_INTERVAL
+            print(f"[LiveRefresh] Intervalo restaurado a {self.BASE_INTERVAL:.0f}s.")
+
+    def _on_failure(self, error_msg):
+        self._consecutive_failures += 1
+        self._consecutive_successes = 0
+
+        old_interval = self._current_interval
+        self._current_interval = min(
+            self._current_interval * self.BACKOFF_MULTIPLIER,
+            self.MAX_INTERVAL,
+        )
+
+        print(f"[LiveRefresh] FAIL #{self._consecutive_failures}: {error_msg}")
+        print(f"[LiveRefresh] Backoff: {old_interval:.0f}s -> {self._current_interval:.0f}s")
+        logger.warning(f"Refresh fallo ({self._consecutive_failures} consecutivos): {error_msg}")
+
+    def get_status(self):
+        return {
+            "running": self._running,
+            "interval": self._current_interval,
+            "consecutive_successes": self._consecutive_successes,
+            "consecutive_failures": self._consecutive_failures,
+            "total_refreshes": self._refresh_count,
+        }

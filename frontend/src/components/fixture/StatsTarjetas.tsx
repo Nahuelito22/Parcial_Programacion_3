@@ -1,4 +1,4 @@
-import { Tarjeta2026 } from "../../hooks/useWorldCup2026";
+import type { Tarjeta2026 } from "../../hooks/useWorldCup2026";
 
 interface Props {
   tarjetas: Tarjeta2026[];
