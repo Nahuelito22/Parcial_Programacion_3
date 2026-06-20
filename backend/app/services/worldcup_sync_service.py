@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from app.services.espn_client import ESPNClient
 from app.services.espn_stats_scraper import ESPNStatsScraper
 from app.services.worldcup_groups import get_group_by_abbrev
@@ -235,24 +236,38 @@ class WorldCupSyncService:
 
     def refresh_live_games(self, email=None, password=None):
         """
-        Actualizacion rapida de partidos en vivo. Solo scoreboard de ESPN.
+        Actualizacion rapida de partidos en vivo.
+        Busca scoreboard de HOY y de AYER para capturar partidos que acabaron de finalizar.
         No limpia datos, solo actualiza partidos existentes.
         """
         try:
-            espn_matches = self.espn.get_all_matches()
-            if not espn_matches:
-                return {"success": True, "matches": 0, "source": "espn"}
-
             teams_cache = {t["codigo_fifa"]: t for t in Team2026.get_all()}
 
-            for m in espn_matches:
+            # Traer scoreboard de hoy + ayer
+            all_espn_matches = []
+            all_espn_matches.extend(self.espn.get_all_matches())
+
+            yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y%m%d")
+            try:
+                yesterday_data = self.espn.get_scoreboard(date=yesterday)
+                for event in yesterday_data.get("events", []):
+                    for comp in event.get("competitions", []):
+                        parsed = self.espn._parse_match(event, comp)
+                        if parsed["api_game_id"] not in {m["api_game_id"] for m in all_espn_matches}:
+                            all_espn_matches.append(parsed)
+            except Exception:
+                pass  # Si ayer no tiene datos, sigue con los de hoy
+
+            if not all_espn_matches:
+                return {"success": True, "matches": 0, "source": "espn"}
+
+            for m in all_espn_matches:
                 local = m["equipo_local"]
                 visitante = m["equipo_visitante"]
                 local_group = get_group_by_abbrev(local["code"])
                 visitante_group = get_group_by_abbrev(visitante["code"])
                 match_group = local_group or visitante_group
 
-                # Buscar logos del cache local si ESPN no los tiene
                 local_logo = local["logo"]
                 if not local_logo and local["code"] in teams_cache:
                     local_logo = teams_cache[local["code"]].get("bandera_url")
@@ -288,10 +303,10 @@ class WorldCupSyncService:
                     "etapa_detalle": m.get("etapa_detalle"),
                 })
 
-            print(f"[Sync] Refresh: {len(espn_matches)} partidos actualizados.")
-            return {"success": True, "matches": len(espn_matches), "source": "espn"}
+            print(f"[Sync] Refresh: {len(all_espn_matches)} partidos actualizados (hoy+ayer).")
+            return {"success": True, "matches": len(all_espn_matches), "source": "espn"}
         except Exception as e:
-            logger.warning(f"ESPN refresh falló: {e}")
+            logger.warning(f"ESPN refresh fallo: {e}")
             return {"success": False, "error": str(e)}
 
     def refresh_live(self, email=None, password=None):
