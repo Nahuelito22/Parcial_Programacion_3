@@ -57,29 +57,54 @@ class WorldCupSyncService:
                 }
             print(f"[Sync] {len(teams_data)} equipos sincronizados.")
 
-            # Insertar posiciones iniciales de grupos (todos en 0)
-            print("[Sync] Generando posiciones iniciales de grupos...")
-            for idx, t in enumerate(teams_data):
-                abbrev = t["abbreviation"]
-                group = get_group_by_abbrev(abbrev)
-                if group:
-                    # Calcular posicion dentro del grupo (1-4)
-                    teams_in_group = [x for x in teams_data if get_group_by_abbrev(x["abbreviation"]) == group]
-                    pos = next((i + 1 for i, x in enumerate(teams_in_group) if x["abbreviation"] == abbrev), 1)
-                    Group2026.upsert({
-                        "grupo": group,
-                        "equipo_id": str(t["id"]),
-                        "posicion": pos,
-                        "puntos": 0,
-                        "goles_favor": 0,
-                        "goles_contra": 0,
-                        "diferencia_gol": 0,
-                        "partidos_jugados": 0,
-                        "victorias": 0,
-                        "empates": 0,
-                        "derrotas": 0,
-                    })
-            print(f"[Sync] Grupos generados para {len(teams_data)} equipos.")
+            # 2b. Obtener posiciones de grupos desde ESPN
+            espn_groups = {}
+            try:
+                print("[Sync] Obteniendo posiciones de grupos desde ESPN...")
+                standings = self.espn.get_standings()
+                for g in standings:
+                    group_letter = g["grupo"]
+                    for t in g["equipos"]:
+                        Group2026.upsert({
+                            "grupo": group_letter,
+                            "equipo_id": t["equipo_id"],
+                            "posicion": t["posicion"],
+                            "puntos": t["puntos"],
+                            "goles_favor": t["goles_favor"],
+                            "goles_contra": t["goles_contra"],
+                            "diferencia_gol": t["diferencia_gol"],
+                            "partidos_jugados": t["partidos_jugados"],
+                            "victorias": t["victorias"],
+                            "empates": t["empates"],
+                            "derrotas": t["derrotas"],
+                        })
+                        espn_groups[t["equipo_codigo"]] = group_letter
+                print(f"[Sync] Grupos ESPN: {len(espn_groups)} equipos en {len(standings)} grupos.")
+            except Exception as e:
+                logger.warning(f"ESPN standings no disponible, usando worldcup_groups: {e}")
+                print(f"[Sync] WARNING: ESPN standings fallo, usando worldcup_groups.py")
+
+                # Fallback: crear posiciones en 0 desde worldcup_groups.py
+                for t in teams_data:
+                    abbrev = t["abbreviation"]
+                    group = get_group_by_abbrev(abbrev)
+                    if group:
+                        teams_in_group = [x for x in teams_data if get_group_by_abbrev(x["abbreviation"]) == group]
+                        pos = next((i + 1 for i, x in enumerate(teams_in_group) if x["abbreviation"] == abbrev), 1)
+                        Group2026.upsert({
+                            "grupo": group,
+                            "equipo_id": str(t["id"]),
+                            "posicion": pos,
+                            "puntos": 0,
+                            "goles_favor": 0,
+                            "goles_contra": 0,
+                            "diferencia_gol": 0,
+                            "partidos_jugados": 0,
+                            "victorias": 0,
+                            "empates": 0,
+                            "derrotas": 0,
+                        })
+                print(f"[Sync] Grupos fallback: {len(teams_data)} equipos con posiciones en 0.")
         except Exception as e:
             logger.error(f"Error obteniendo equipos de ESPN: {e}")
             print(f"[Sync] ERROR: No se pudieron obtener equipos: {e}")
@@ -150,10 +175,6 @@ class WorldCupSyncService:
                     "etapa_detalle": m.get("etapa_detalle"),
                 })
             print(f"[Sync] {len(matches_data)} partidos sincronizados.")
-
-            # Recalcular posiciones de grupos a partir de los partidos finalizados
-            print("[Sync] Recalculando posiciones de grupos...")
-            self._recalculate_groups(matches_data, teams_data)
 
         except Exception as e:
             logger.error(f"Error obteniendo scoreboard de ESPN: {e}")
