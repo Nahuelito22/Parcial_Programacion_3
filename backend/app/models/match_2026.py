@@ -145,3 +145,22 @@ class Match2026:
                 cursor.execute(query, data)
         finally:
             conn.close()
+
+    @staticmethod
+    def delete_all():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM partidos_2026")
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM partidos_2026")
+                return cursor.fetchone()["COUNT(*)"]
+        finally:
+            conn.close()

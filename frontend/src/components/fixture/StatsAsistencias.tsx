@@ -1,4 +1,4 @@
-import { Asistencia2026 } from "../../hooks/useWorldCup2026";
+import type { Asistencia2026 } from "../../hooks/useWorldCup2026";
 
 interface Props {
   asistencias: Asistencia2026[];

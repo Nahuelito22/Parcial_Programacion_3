@@ -1,7 +1,20 @@
 import requests
+import ssl
 import logging
+from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
+
+class TLSAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        """
+        Configura el contexto SSL para usar cifrados compatibles heredados (SECLEVEL=1).
+        Esto es crítico para evitar el error SSLEOFError con la API de worldcup26.ir.
+        """
+        context = ssl.create_default_context()
+        context.set_ciphers('DEFAULT@SECLEVEL=1')
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
 
 class WorldCupClient:
     def __init__(self, base_url="https://worldcup26.ir"):
@@ -10,6 +23,8 @@ class WorldCupClient:
         """
         self.base_url = base_url.rstrip("/")
         self.token = None
+        self.session = requests.Session()
+        self.session.mount('https://', TLSAdapter())
 
     def authenticate(self, email, password):
         """
@@ -23,7 +38,7 @@ class WorldCupClient:
         }
         try:
             logger.info(f"Intentando autenticación en {url}...")
-            response = requests.post(url, json=payload, timeout=10)
+            response = self.session.post(url, json=payload, timeout=10)
             response.raise_for_status()
             data = response.json()
             
@@ -59,7 +74,7 @@ class WorldCupClient:
         url = f"{self.base_url}/get/teams"
         try:
             headers = self._get_headers(token)
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -78,7 +93,7 @@ class WorldCupClient:
         url = f"{self.base_url}/get/groups"
         try:
             headers = self._get_headers(token)
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -97,7 +112,7 @@ class WorldCupClient:
         url = f"{self.base_url}/get/games"
         try:
             headers = self._get_headers(token)
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -124,7 +139,7 @@ class WorldCupClient:
         url = f"{self.base_url}/get/game/{game_id}"
         try:
             headers = self._get_headers(t)
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -143,7 +158,7 @@ class WorldCupClient:
         url = f"{self.base_url}/get/stadiums"
         try:
             headers = self._get_headers(token)
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:

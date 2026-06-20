@@ -61,6 +61,25 @@ class Team2026:
         finally:
             conn.close()
 
+    @staticmethod
+    def delete_all():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM equipos_2026")
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM equipos_2026")
+                return cursor.fetchone()["COUNT(*)"]
+        finally:
+            conn.close()
+
 
 class Stadium2026:
     """
@@ -109,6 +128,25 @@ class Stadium2026:
                         capacidad = VALUES(capacidad)
                 """
                 cursor.execute(query, data)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_all():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM estadios_2026")
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM estadios_2026")
+                return cursor.fetchone()["COUNT(*)"]
         finally:
             conn.close()
 
@@ -181,5 +219,24 @@ class Group2026:
                         derrotas = VALUES(derrotas)
                 """
                 cursor.execute(query, data)
+        finally:
+            conn.close()
+
+    @staticmethod
+    def delete_all():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM grupos_2026")
+        finally:
+            conn.close()
+
+    @staticmethod
+    def count():
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM grupos_2026")
+                return cursor.fetchone()["COUNT(*)"]
         finally:
             conn.close()
