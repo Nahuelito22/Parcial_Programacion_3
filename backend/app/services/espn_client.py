@@ -137,6 +137,58 @@ class ESPNClient:
         return status_type.get("description", "notstarted")
 
     # ------------------------------------------------------------------
+    # Standings / Group Positions
+    # ------------------------------------------------------------------
+    def get_standings(self):
+        """
+        Retorna las posiciones de los 12 grupos del Mundial 2026.
+        USA /apis/v2/ (NO /apis/site/v2/ que devuelve vacio).
+        """
+        data = self._get("/apis/v2/sports/soccer/fifa.world/standings")
+        groups = []
+        for child in data.get("children", []):
+            group_name = child.get("name", "")  # e.g. "Group A"
+            # Extraer letra del grupo: "Group A" -> "A"
+            group_letter = group_name.replace("Group ", "").strip()
+
+            entries = child.get("standings", {}).get("entries", [])
+            teams_in_group = []
+            for entry in entries:
+                team_info = entry.get("team", {})
+                stats_list = entry.get("stats", [])
+
+                # Convertir lista de stats a dict
+                stats = {}
+                for s in stats_list:
+                    stats[s["name"]] = s.get("value", 0)
+
+                # Buscar posicion del equipo dentro del grupo (por note.rank o orden)
+                note = entry.get("note", {})
+                posicion = note.get("rank", len(teams_in_group) + 1)
+
+                teams_in_group.append({
+                    "equipo_id": str(team_info.get("id", "0")),
+                    "equipo_nombre": team_info.get("displayName", ""),
+                    "equipo_codigo": team_info.get("abbreviation", ""),
+                    "posicion": posicion,
+                    "puntos": int(stats.get("points", 0)),
+                    "partidos_jugados": int(stats.get("gamesPlayed", 0)),
+                    "victorias": int(stats.get("wins", 0)),
+                    "empates": int(stats.get("ties", 0)),
+                    "derrotas": int(stats.get("losses", 0)),
+                    "goles_favor": int(stats.get("pointsFor", 0)),
+                    "goles_contra": int(stats.get("pointsAgainst", 0)),
+                    "diferencia_gol": int(stats.get("pointDifferential", 0)),
+                })
+
+            groups.append({
+                "grupo": group_letter,
+                "equipos": teams_in_group,
+            })
+
+        return groups
+
+    # ------------------------------------------------------------------
     # Teams
     # ------------------------------------------------------------------
     def get_teams(self):
