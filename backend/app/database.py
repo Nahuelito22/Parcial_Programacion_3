@@ -26,7 +26,9 @@ class Database:
         ssl_config = None
         if ssl_env != "false":
             # Crear contexto SSL sin verificar CA (necesario para Aiven en Render)
-            ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+            # IMPORTANTE: Usar PROTOCOL_TLS, NO PROTOCOL_TLS_CLIENT
+            # PROTOCOL_TLS_CLIENT fuerza verificación de certificados y no se puede desactivar
+            ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS)
             ctx.check_hostname = False
             ctx.verify_mode = _ssl.CERT_NONE
             ssl_config = ctx
