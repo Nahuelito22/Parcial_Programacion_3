@@ -15,7 +15,7 @@ Plataforma web interactiva para la gestion, visualizacion y prediccion de estadi
 - [Endpoints de la API](#endpoints-de-la-api)
 - [Diagrama UML](#diagrama-uml)
 - [Estrategia de Ramas (Git)](#estrategia-de-ramas-git)
-- [Integrantes](#integrantes)
+- [Autor](#autor)
 - [Referencias y Creditos](#referencias-y-creditos)
 
 ---
@@ -366,7 +366,7 @@ Una vez entrenado, el endpoint `/api/oracle/predict` utilizara automaticamente e
 
 - **`main`**: Rama principal y protegida. Solo contiene codigo funcional y estable.
 - **`dev`**: Rama de desarrollo e integracion. Fusion de cambios aprobados antes de pasar a `main`.
-- **`Nahuel_Develop` / `Gustavo_Develop`**: Ramas personales de cada desarrollador para cambios estructurales de los modulos asignados.
+- **`Nahuel_Develop`**: Rama personal de desarrollo para cambios estructurales.
 - **`feature/*`**: Ramas efimeras creadas desde la rama del desarrollador para caracteristicas especificas (ej: `feature/head-to-head`, `feature/rankings`, `feature/oracle-ai`).
 
 ### Flujo de Trabajo
@@ -375,12 +375,11 @@ Una vez entrenado, el endpoint `/api/oracle/predict` utilizara automaticamente e
 
 ---
 
-## Integrantes
+## Autor
 
 | Nombre | Modulo | Rol |
 |---|---|---|
-| **Nahuel Ghilardi** | Estadisticas, Dashboard, API Sync, Oraculo IA | Backend & Frontend Developer |
-| **Gustavo Garcia** | Estadisticas, Autenticacion, CRUD | Backend Developer |
+| **Nahuel Ghilardi** | Idea, backend, frontend, datos, Oraculo IA y despliegue | Full Stack Developer |
 
 ---
 

@@ -17,7 +17,6 @@ Cada desarrollador debe trabajar en su **propia rama de desarrollo**, siguiendo 
 | Desarrollador | Nombre de rama |
 |---------------|---------------|
 | Nahuel Ghilardi | `Nahuel_Develop` |
-| Gustavo Garcia | `Gustavo_Develop` |
 
 ### Reglas:
 - ✅ Usar tu **nombre real** (primera letra mayúscula, sin tildes ni espacios)
